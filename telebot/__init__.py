@@ -2559,12 +2559,15 @@ class TeleBot:
                 )
             else:
                 # create a ReplyParameters object
+                reply_parameters = types.ReplyParameters(
+                    reply_to_message_id,
                     allow_sending_without_reply=(
                         self.allow_sending_without_reply
                         if (allow_sending_without_reply is None)
                         else allow_sending_without_reply
                     ),
                 )
+
         if reply_parameters and (reply_parameters.allow_sending_without_reply is None):
             reply_parameters.allow_sending_without_reply = (
                 self.allow_sending_without_reply
@@ -3450,7 +3453,7 @@ class TeleBot:
                 has_spoiler=has_spoiler, business_connection_id=business_connection_id, message_effect_id=message_effect_id,
                 show_caption_above_media=show_caption_above_media)
             )
-        )
+        
 
     def send_video_note(
             self, chat_id: Union[int, str], data: Union[Any, str], 
@@ -3816,7 +3819,7 @@ class TeleBot:
                 message_thread_id=message_thread_id, reply_parameters=reply_parameters, business_connection_id=business_connection_id,
                 message_effect_id=message_effect_id)
             )
-        )
+        
 
     def edit_message_live_location(
             self, latitude: float, longitude: float, 
@@ -4057,12 +4060,10 @@ class TeleBot:
                 protect_content=protect_content, message_thread_id=message_thread_id, reply_parameters=reply_parameters, business_connection_id=business_connection_id,
                 message_effect_id=message_effect_id)
             )
-        )
-        message_thread_id: Optional[int] = None,
-        reply_parameters: Optional[types.ReplyParameters] = None,
-        business_connection_id: Optional[str] = None,
-    ) -> types.Message:
-=======
+        
+
+    def send_contact(
+            self, chat_id: Union[int, str], phone_number: str, 
             first_name: str, last_name: Optional[str]=None, 
             vcard: Optional[str]=None,
             disable_notification: Optional[bool]=None, 
@@ -4074,7 +4075,6 @@ class TeleBot:
             reply_parameters: Optional[types.ReplyParameters]=None,
             business_connection_id: Optional[str]=None,
             message_effect_id: Optional[str]=None) -> types.Message:
->>>>>>> 3a750391041230b96601a277da874dc8f99a0d3e
         """
         Use this method to send phone contacts. On success, the sent Message is returned.
 
@@ -4176,7 +4176,7 @@ class TeleBot:
                 protect_content=protect_content, message_thread_id=message_thread_id, reply_parameters=reply_parameters,
                 business_connection_id=business_connection_id, message_effect_id=message_effect_id)
             )
-        )
+        
 
     def send_chat_action(
         self,
