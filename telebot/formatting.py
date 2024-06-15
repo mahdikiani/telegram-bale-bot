@@ -411,6 +411,8 @@ def apply_html_entities(
         "spoiler": '<span class="tg-spoiler">{text}</span>',
         "custom_emoji": '<tg-emoji emoji-id="{custom_emoji_id}">{text}</tg-emoji>',
         "blockquote": "<blockquote>{text}</blockquote>",
+        "expandable_blockquote": "<blockquote expandable>{text}</blockquote>",
+
     }
 
     if custom_subs:
