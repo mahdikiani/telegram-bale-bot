@@ -85,7 +85,7 @@ async def _process_request(token, url, method="get", params=None, files=None, **
     request_timeout = REQUEST_TIMEOUT if request_timeout is None else request_timeout
 
     # Preparing data by adding all parameters and files to FormData
-    file_id = params.get("file_id", None)
+    file_id = (params or {}).get("file_id", None)
     params = _prepare_data(params, files)
 
     timeout = aiohttp.ClientTimeout(total=request_timeout)
