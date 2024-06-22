@@ -619,7 +619,6 @@ class AsyncTeleBot:
                 if isinstance(middleware_result, CancelUpdate):
                     return
                 elif isinstance(middleware_result, SkipHandler):
-                    await middleware.post_process(message, data, handler_error)
                     skip_handlers = True
 
         if handlers and not (skip_handlers):
@@ -4055,28 +4054,14 @@ class AsyncTeleBot:
         :param remove_caption: Pass True to copy the messages without their captions
         :type remove_caption: :obj:`bool`
 
-        :return: On success, an array of MessageId of the sent messages is returned.
-        :rtype: :obj:`list` of :class:`telebot.types.MessageID`
-        """
-        disable_notification = (
-            self.disable_notification
-            if disable_notification is None
-            else disable_notification
-        )
-        protect_content = (
-            self.protect_content if protect_content is None else protect_content
-        )
-        result = await asyncio_helper.copy_messages(
-            self.token,
-            chat_id,
-            from_chat_id,
-            message_ids,
-            disable_notification,
-            protect_content,
-            message_thread_id,
-            remove_caption,
-        )
-        return [types.MessageID.de_json(message_id) for message_id in result]
+            :return: On success, an array of MessageId of the sent messages is returned.
+            :rtype: :obj:`list` of :class:`telebot.types.MessageID`
+            """
+            disable_notification = self.disable_notification if disable_notification is None else disable_notification
+            protect_content = self.protect_content if protect_content is None else protect_content
+            result = await asyncio_helper.copy_messages(self.token, chat_id, from_chat_id, message_ids, disable_notification, message_thread_id,
+                                            protect_content, remove_caption)
+            return [types.MessageID.de_json(message_id) for message_id in result]
 
     async def send_dice(
             self, chat_id: Union[int, str],
@@ -5562,6 +5547,7 @@ class AsyncTeleBot:
             heading: Optional[int]=None, 
             proximity_alert_radius: Optional[int]=None,
             live_period: Optional[int]=None,
+            business_connection_id: Optional[str]=None
     ) -> types.Message:
         """
         Use this method to edit live location messages. A location can be edited until its live_period expires or editing is explicitly
@@ -5604,6 +5590,9 @@ class AsyncTeleBot:
         :param live_period: New period in seconds during which the location can be updated, starting from the message send date. If 0x7FFFFFFF is specified, then the location can be updated forever. Otherwise, the new value must not exceed the current live_period by more than a day, and the live location expiration date must remain within the next 90 days. If not specified, then live_period remains unchanged
         :type live_period: :obj:`int`
 
+        :param business_connection_id: Identifier of a business connection, in which the message will be edited
+        :type business_connection_id: :obj:`str`
+
         :return: On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned.
         :rtype: :class:`telebot.types.Message` or bool
         """
@@ -5611,17 +5600,16 @@ class AsyncTeleBot:
             await asyncio_helper.edit_message_live_location(
                 self.token, latitude, longitude, chat_id, message_id,
                 inline_message_id, reply_markup, timeout,
-                horizontal_accuracy, heading, proximity_alert_radius, live_period=live_period)
+                horizontal_accuracy, heading, proximity_alert_radius, live_period=live_period, business_connection_id=business_connection_id)
         )
 
     async def stop_message_live_location(
-        self,
-        chat_id: Optional[Union[int, str]] = None,
-        message_id: Optional[int] = None,
-        inline_message_id: Optional[str] = None,
-        reply_markup: Optional[types.InlineKeyboardMarkup] = None,
-        timeout: Optional[int] = None,
-    ) -> types.Message:
+            self, chat_id: Optional[Union[int, str]]=None, 
+            message_id: Optional[int]=None,
+            inline_message_id: Optional[str]=None, 
+            reply_markup: Optional[types.InlineKeyboardMarkup]=None,
+            timeout: Optional[int]=None,
+            business_connection_id: Optional[str]=None) -> types.Message:
         """
         Use this method to stop updating a live location message before live_period expires.
         On success, if the message is not an inline message, the edited Message is returned, otherwise True is returned.
@@ -5644,19 +5632,15 @@ class AsyncTeleBot:
         :param timeout: Timeout in seconds for the request.
         :type timeout: :obj:`int`
 
+        :param business_connection_id: Identifier of a business connection, in which the message will be edited
+        :type business_connection_id: :obj:`str`
+
         :return: On success, if the message is not an inline message, the edited Message is returned, otherwise True is returned.
         :rtype: :class:`telebot.types.Message` or bool
         """
         return types.Message.de_json(
             await asyncio_helper.stop_message_live_location(
-                self.token,
-                chat_id,
-                message_id,
-                inline_message_id,
-                reply_markup,
-                timeout,
-            )
-        )
+                self.token, chat_id, message_id, inline_message_id, reply_markup, timeout, business_connection_id))
 
     async def send_venue(
             self, chat_id: Union[int, str], 
@@ -7026,17 +7010,16 @@ class AsyncTeleBot:
         return await asyncio_helper.unpin_all_chat_messages(self.token, chat_id)
 
     async def edit_message_text(
-        self,
-        text: str,
-        chat_id: Optional[Union[int, str]] = None,
-        message_id: Optional[int] = None,
-        inline_message_id: Optional[str] = None,
-        parse_mode: Optional[str] = None,
-        entities: Optional[List[types.MessageEntity]] = None,
-        disable_web_page_preview: Optional[bool] = None,
-        reply_markup: Optional[types.InlineKeyboardMarkup] = None,
-        link_preview_options: Optional[types.LinkPreviewOptions] = None,
-    ) -> Union[types.Message, bool]:
+            self, text: str, 
+            chat_id: Optional[Union[int, str]]=None, 
+            message_id: Optional[int]=None, 
+            inline_message_id: Optional[str]=None, 
+            parse_mode: Optional[str]=None,
+            entities: Optional[List[types.MessageEntity]]=None,
+            disable_web_page_preview: Optional[bool]=None,
+            reply_markup: Optional[types.InlineKeyboardMarkup]=None,
+            link_preview_options: Optional[types.LinkPreviewOptions]=None,
+            business_connection_id: Optional[str]=None) -> Union[types.Message, bool]:
         """
         Use this method to edit text and game messages.
 
@@ -7068,6 +7051,9 @@ class AsyncTeleBot:
 
         :param link_preview_options: A JSON-serialized object for options used to automatically generate Telegram link previews for messages.
         :type link_preview_options: :obj:`LinkPreviewOptions`
+
+        :param business_connection_id: Unique identifier of the business connection
+        :type business_connection_id: :obj:`str`
 
         :return: On success, if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
         :rtype: :obj:`types.Message` or :obj:`bool`
@@ -7101,29 +7087,18 @@ class AsyncTeleBot:
                 is_disabled=self.disable_web_page_preview
             )
 
-        result = await asyncio_helper.edit_message_text(
-            self.token,
-            text,
-            chat_id,
-            message_id,
-            inline_message_id,
-            parse_mode,
-            entities,
-            reply_markup,
-            link_preview_options,
-        )
+        result = await asyncio_helper.edit_message_text(self.token, text, chat_id, message_id, inline_message_id, parse_mode,
+                                             entities, reply_markup, link_preview_options, business_connection_id)
         if type(result) == bool:  # if edit inline message return is bool not Message.
             return result
         return types.Message.de_json(result)
 
     async def edit_message_media(
-        self,
-        media: Any,
-        chat_id: Optional[Union[int, str]] = None,
-        message_id: Optional[int] = None,
-        inline_message_id: Optional[str] = None,
-        reply_markup: Optional[types.InlineKeyboardMarkup] = None,
-    ) -> Union[types.Message, bool]:
+            self, media: Any, chat_id: Optional[Union[int, str]]=None, 
+            message_id: Optional[int]=None,
+            inline_message_id: Optional[str]=None, 
+            reply_markup: Optional[types.InlineKeyboardMarkup]=None,
+            business_connection_id: Optional[str]=None) -> Union[types.Message, bool]:
         """
         Use this method to edit animation, audio, document, photo, or video messages.
         If a message is a part of a message album, then it can be edited only to a photo or a video.
@@ -7146,23 +7121,23 @@ class AsyncTeleBot:
         :param reply_markup: A JSON-serialized object for an inline keyboard.
         :type reply_markup: :obj:`telebot.types.InlineKeyboardMarkup` or :obj:`ReplyKeyboardMarkup` or :obj:`ReplyKeyboardRemove` or :obj:`ForceReply`
 
+        :param business_connection_id: Unique identifier of the business connection
+        :type business_connection_id: :obj:`str`
+
         :return: On success, if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
         :rtype: :obj:`types.Message` or :obj:`bool`
         """
-        result = await asyncio_helper.edit_message_media(
-            self.token, media, chat_id, message_id, inline_message_id, reply_markup
-        )
+        result = await asyncio_helper.edit_message_media(self.token, media, chat_id, message_id, inline_message_id, reply_markup, business_connection_id)
         if type(result) == bool:  # if edit inline message return is bool not Message.
             return result
         return types.Message.de_json(result)
 
     async def edit_message_reply_markup(
-        self,
-        chat_id: Optional[Union[int, str]] = None,
-        message_id: Optional[int] = None,
-        inline_message_id: Optional[str] = None,
-        reply_markup: Optional[types.InlineKeyboardMarkup] = None,
-    ) -> Union[types.Message, bool]:
+            self, chat_id: Optional[Union[int, str]]=None, 
+            message_id: Optional[int]=None,
+            inline_message_id: Optional[str]=None, 
+            reply_markup: Optional[types.InlineKeyboardMarkup]=None,
+            business_connection_id: Optional[str]=None) -> Union[types.Message, bool]:
         """
         Use this method to edit only the reply markup of messages.
 
@@ -7180,12 +7155,13 @@ class AsyncTeleBot:
         :param reply_markup: A JSON-serialized object for an inline keyboard.
         :type reply_markup: :obj:`InlineKeyboardMarkup` or :obj:`ReplyKeyboardMarkup` or :obj:`ReplyKeyboardRemove` or :obj:`ForceReply`
 
+        :param business_connection_id: Unique identifier of the business connection
+        :type business_connection_id: :obj:`str`
+
         :return: On success, if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
         :rtype: :obj:`types.Message` or :obj:`bool`
         """
-        result = await asyncio_helper.edit_message_reply_markup(
-            self.token, chat_id, message_id, inline_message_id, reply_markup
-        )
+        result = await asyncio_helper.edit_message_reply_markup(self.token, chat_id, message_id, inline_message_id, reply_markup, business_connection_id)
         if type(result) == bool:
             return result
         return types.Message.de_json(result)
@@ -7877,11 +7853,9 @@ class AsyncTeleBot:
                 message_effect_id=message_effect_id))
 
     async def stop_poll(
-        self,
-        chat_id: Union[int, str],
-        message_id: int,
-        reply_markup: Optional[types.InlineKeyboardMarkup] = None,
-    ) -> types.Poll:
+            self, chat_id: Union[int, str], message_id: int, 
+            reply_markup: Optional[types.InlineKeyboardMarkup]=None,
+            business_connection_id: Optional[str]=None) -> types.Poll:
         """
         Use this method to stop a poll which was sent by the bot. On success, the stopped Poll is returned.
 
@@ -7896,14 +7870,13 @@ class AsyncTeleBot:
         :param reply_markup: A JSON-serialized object for a new message markup.
         :type reply_markup: :obj:`InlineKeyboardMarkup`
 
+        :param business_connection_id: Identifier of the business connection to send the message through
+        :type business_connection_id: :obj:`str`
+
         :return: On success, the stopped Poll is returned.
         :rtype: :obj:`types.Poll`
         """
-        return types.Poll.de_json(
-            await asyncio_helper.stop_poll(
-                self.token, chat_id, message_id, reply_markup
-            )
-        )
+        return types.Poll.de_json(await asyncio_helper.stop_poll(self.token, chat_id, message_id, reply_markup, business_connection_id))
 
     async def answer_shipping_query(
         self,
@@ -7966,6 +7939,25 @@ class AsyncTeleBot:
         """
         return await asyncio_helper.answer_pre_checkout_query(self.token, pre_checkout_query_id, ok, error_message)
     
+
+    async def get_star_transactions(self, offset: Optional[int]=None, limit: Optional[int]=None) -> types.StarTransactions:
+        """
+        Returns the bot's Telegram Star transactions in chronological order.
+
+        Telegram documentation: https://core.telegram.org/bots/api#getstartransactions
+
+        :param offset: Number of transactions to skip in the response
+        :type offset: :obj:`int`
+
+        :param limit: The maximum number of transactions to be retrieved. Values between 1-100 are accepted. Defaults to 100.
+        :type limit: :obj:`int`
+
+        :return: On success, returns a StarTransactions object.
+        :rtype: :obj:`types.StarTransactions`
+        """
+
+        return types.StarTransactions.de_json(await asyncio_helper.get_star_transactions(self.token, offset, limit))
+    
     async def refund_star_payment(self, user_id: int, telegram_payment_charge_id: str) -> bool:
         """
         Refunds a successful payment in Telegram Stars. Returns True on success.
@@ -7990,7 +7982,8 @@ class AsyncTeleBot:
             parse_mode: Optional[str]=None, 
             caption_entities: Optional[List[types.MessageEntity]]=None,
             reply_markup: Optional[types.InlineKeyboardMarkup]=None,
-            show_caption_above_media: Optional[bool]=None) -> Union[types.Message, bool]:
+            show_caption_above_media: Optional[bool]=None,
+            business_connection_id: Optional[str]=None) -> Union[types.Message, bool]:
         """
         Use this method to edit captions of messages.
 
@@ -8020,13 +8013,16 @@ class AsyncTeleBot:
         :param show_caption_above_media: Pass True, if the caption must be shown above the message media. Supported only for animation, photo and video messages.
         :type show_caption_above_media: :obj:`bool`
 
+        :param business_connection_id: Identifier of the business connection to send the message through
+        :type business_connection_id: :obj:`str`
+
         :return: On success, if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
         :rtype: :obj:`types.Message` | :obj:`bool`
         """
         parse_mode = self.parse_mode if (parse_mode is None) else parse_mode
 
         result = await asyncio_helper.edit_message_caption(self.token, caption, chat_id, message_id, inline_message_id,
-                                                parse_mode, caption_entities, reply_markup, show_caption_above_media=show_caption_above_media)
+                                                parse_mode, caption_entities, reply_markup, show_caption_above_media=show_caption_above_media, business_connection_id=business_connection_id)
         if type(result) == bool:
             return result
         return types.Message.de_json(result)

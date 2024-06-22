@@ -3830,7 +3830,10 @@ class TeleBot:
             timeout: Optional[int]=None,
             horizontal_accuracy: Optional[float]=None, 
             heading: Optional[int]=None, 
-            proximity_alert_radius: Optional[int]=None) -> types.Message or bool:
+            proximity_alert_radius: Optional[int]=None,
+            live_period: Optional[int]=None,
+            business_connection_id: Optional[str]=None
+    ) -> types.Message or bool:
         """
         Use this method to edit live location messages. A location can be edited until its live_period expires or editing is explicitly
             disabled by a call to stopMessageLiveLocation. On success, if the edited message is not an inline message, the edited Message
@@ -3872,6 +3875,9 @@ class TeleBot:
         :param live_period: New period in seconds during which the location can be updated, starting from the message send date. If 0x7FFFFFFF is specified, then the location can be updated forever. Otherwise, the new value must not exceed the current live_period by more than a day, and the live location expiration date must remain within the next 90 days. If not specified, then live_period remains unchanged
         :type live_period: :obj:`int`
 
+        :param business_connection_id: Identifier of a business connection
+        :type business_connection_id: :obj:`str`
+
         :return: On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned.
         :rtype: :class:`telebot.types.Message` or bool
         """
@@ -3879,18 +3885,17 @@ class TeleBot:
             apihelper.edit_message_live_location(
                 self.token, latitude, longitude, chat_id=chat_id, message_id=message_id, inline_message_id=inline_message_id,
                 reply_markup=reply_markup, timeout=timeout, horizontal_accuracy=horizontal_accuracy, heading=heading,
-                proximity_alert_radius=proximity_alert_radius)
+                proximity_alert_radius=proximity_alert_radius, live_period=live_period, business_connection_id=business_connection_id)
             )
         
 
     def stop_message_live_location(
-        self,
-        chat_id: Optional[Union[int, str]] = None,
-        message_id: Optional[int] = None,
-        inline_message_id: Optional[str] = None,
-        reply_markup: Optional[types.InlineKeyboardMarkup] = None,
-        timeout: Optional[int] = None,
-    ) -> types.Message or bool:
+            self, chat_id: Optional[Union[int, str]]=None, 
+            message_id: Optional[int]=None,
+            inline_message_id: Optional[str]=None, 
+            reply_markup: Optional[types.InlineKeyboardMarkup]=None,
+            timeout: Optional[int]=None,
+            business_connection_id: Optional[str]=None) -> types.Message or bool:
         """
         Use this method to stop updating a live location message before live_period expires.
         On success, if the message is not an inline message, the edited Message is returned, otherwise True is returned.
@@ -3913,18 +3918,16 @@ class TeleBot:
         :param timeout: Timeout in seconds for the request.
         :type timeout: :obj:`int`
 
+        :param business_connection_id: Identifier of a business connection
+        :type business_connection_id: :obj:`str`
+
         :return: On success, if the message is not an inline message, the edited Message is returned, otherwise True is returned.
         :rtype: :class:`telebot.types.Message` or bool
         """
         return types.Message.de_json(
             apihelper.stop_message_live_location(
-                self.token,
-                chat_id=chat_id,
-                message_id=message_id,
-                inline_message_id=inline_message_id,
-                reply_markup=reply_markup,
-                timeout=timeout,
-            )
+                self.token, chat_id=chat_id, message_id=message_id, inline_message_id=inline_message_id,
+                reply_markup=reply_markup, timeout=timeout, business_connection_id=business_connection_id)
         )
 
     def send_venue(
@@ -5298,19 +5301,16 @@ class TeleBot:
         return apihelper.unpin_all_chat_messages(self.token, chat_id)
 
     def edit_message_text(
-        self,
-        text: str,
-        chat_id: Optional[Union[int, str]] = None,
-        message_id: Optional[int] = None,
-        inline_message_id: Optional[str] = None,
-        parse_mode: Optional[str] = None,
-        entities: Optional[List[types.MessageEntity]] = None,
-        disable_web_page_preview: Optional[
-            bool
-        ] = None,  # deprecated, for backward compatibility
-        reply_markup: Optional[types.InlineKeyboardMarkup] = None,
-        link_preview_options: Optional[types.LinkPreviewOptions] = None,
-    ) -> Union[types.Message, bool]:
+            self, text: str, 
+            chat_id: Optional[Union[int, str]]=None, 
+            message_id: Optional[int]=None, 
+            inline_message_id: Optional[str]=None, 
+            parse_mode: Optional[str]=None,
+            entities: Optional[List[types.MessageEntity]]=None,
+            disable_web_page_preview: Optional[bool]=None,        # deprecated, for backward compatibility
+            reply_markup: Optional[types.InlineKeyboardMarkup]=None,
+            link_preview_options : Optional[types.LinkPreviewOptions]=None,
+            business_connection_id: Optional[str]=None) -> Union[types.Message, bool]:
         """
         Use this method to edit text and game messages.
 
@@ -5342,6 +5342,9 @@ class TeleBot:
 
         :param link_preview_options: A JSON-serialized object for options used to automatically generate previews for links.
         :type link_preview_options: :obj:`LinkPreviewOptions`
+
+        :param business_connection_id: Unique identifier of the business connection
+        :type business_connection_id: :obj:`str`
 
         :return: On success, if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
         :rtype: :obj:`types.Message` or :obj:`bool`
@@ -5376,29 +5379,20 @@ class TeleBot:
             )
 
         result = apihelper.edit_message_text(
-            self.token,
-            text,
-            chat_id=chat_id,
-            message_id=message_id,
-            inline_message_id=inline_message_id,
-            parse_mode=parse_mode,
-            entities=entities,
-            reply_markup=reply_markup,
-            link_preview_options=link_preview_options,
-        )
+            self.token, text, chat_id=chat_id, message_id=message_id, inline_message_id=inline_message_id,
+            parse_mode=parse_mode, entities=entities, reply_markup=reply_markup, link_preview_options=link_preview_options,
+            business_connection_id=business_connection_id)
 
         if type(result) == bool:  # if edit inline message return is bool not Message.
             return result
         return types.Message.de_json(result)
 
     def edit_message_media(
-        self,
-        media: Any,
-        chat_id: Optional[Union[int, str]] = None,
-        message_id: Optional[int] = None,
-        inline_message_id: Optional[str] = None,
-        reply_markup: Optional[types.InlineKeyboardMarkup] = None,
-    ) -> Union[types.Message, bool]:
+            self, media: Any, chat_id: Optional[Union[int, str]]=None, 
+            message_id: Optional[int]=None,
+            inline_message_id: Optional[str]=None, 
+            reply_markup: Optional[types.InlineKeyboardMarkup]=None,
+            business_connection_id: Optional[str]=None) -> Union[types.Message, bool]:
         """
         Use this method to edit animation, audio, document, photo, or video messages.
         If a message is a part of a message album, then it can be edited only to a photo or a video.
@@ -5421,29 +5415,26 @@ class TeleBot:
         :param reply_markup: A JSON-serialized object for an inline keyboard.
         :type reply_markup: :obj:`telebot.types.InlineKeyboardMarkup` or :obj:`ReplyKeyboardMarkup` or :obj:`ReplyKeyboardRemove` or :obj:`ForceReply`
 
+        :param business_connection_id: Unique identifier of the business connection
+        :type business_connection_id: :obj:`str`
+
         :return: On success, if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
         :rtype: :obj:`types.Message` or :obj:`bool`
         """
         result = apihelper.edit_message_media(
-            self.token,
-            media,
-            chat_id=chat_id,
-            message_id=message_id,
-            inline_message_id=inline_message_id,
-            reply_markup=reply_markup,
-        )
+            self.token, media, chat_id=chat_id, message_id=message_id, inline_message_id=inline_message_id,
+            reply_markup=reply_markup, business_connection_id=business_connection_id)
 
         if type(result) == bool:  # if edit inline message return is bool not Message.
             return result
         return types.Message.de_json(result)
 
     def edit_message_reply_markup(
-        self,
-        chat_id: Optional[Union[int, str]] = None,
-        message_id: Optional[int] = None,
-        inline_message_id: Optional[str] = None,
-        reply_markup: Optional[types.InlineKeyboardMarkup] = None,
-    ) -> Union[types.Message, bool]:
+            self, chat_id: Optional[Union[int, str]]=None, 
+            message_id: Optional[int]=None,
+            inline_message_id: Optional[str]=None, 
+            reply_markup: Optional[types.InlineKeyboardMarkup]=None,
+            business_connection_id: Optional[str]=None) -> Union[types.Message, bool]:
         """
         Use this method to edit only the reply markup of messages.
 
@@ -5461,16 +5452,15 @@ class TeleBot:
         :param reply_markup: A JSON-serialized object for an inline keyboard.
         :type reply_markup: :obj:`InlineKeyboardMarkup` or :obj:`ReplyKeyboardMarkup` or :obj:`ReplyKeyboardRemove` or :obj:`ForceReply`
 
+        :param business_connection_id: Unique identifier of the business connection
+        :type business_connection_id: :obj:`str`
+
         :return: On success, if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
         :rtype: :obj:`types.Message` or :obj:`bool`
         """
         result = apihelper.edit_message_reply_markup(
-            self.token,
-            chat_id=chat_id,
-            message_id=message_id,
-            inline_message_id=inline_message_id,
-            reply_markup=reply_markup,
-        )
+            self.token, chat_id=chat_id, message_id=message_id, inline_message_id=inline_message_id,
+            reply_markup=reply_markup, business_connection_id=business_connection_id)
 
         if type(result) == bool:
             return result
@@ -6161,11 +6151,9 @@ class TeleBot:
         
 
     def stop_poll(
-        self,
-        chat_id: Union[int, str],
-        message_id: int,
-        reply_markup: Optional[types.InlineKeyboardMarkup] = None,
-    ) -> types.Poll:
+            self, chat_id: Union[int, str], message_id: int, 
+            reply_markup: Optional[types.InlineKeyboardMarkup]=None,
+            business_connection_id: Optional[str]=None) -> types.Poll:
         """
         Use this method to stop a poll which was sent by the bot. On success, the stopped Poll is returned.
 
@@ -6180,13 +6168,14 @@ class TeleBot:
         :param reply_markup: A JSON-serialized object for a new message markup.
         :type reply_markup: :obj:`InlineKeyboardMarkup`
 
+        :param business_connection_id: Identifier of the business connection to use for the poll
+        :type business_connection_id: :obj:`str`
+
         :return: On success, the stopped Poll is returned.
         :rtype: :obj:`types.Poll`
         """
         return types.Poll.de_json(
-            apihelper.stop_poll(
-                self.token, chat_id, message_id, reply_markup=reply_markup
-            )
+            apihelper.stop_poll(self.token, chat_id, message_id, reply_markup=reply_markup, business_connection_id=business_connection_id)
         )
 
     def answer_shipping_query(
@@ -6254,6 +6243,27 @@ class TeleBot:
         """
         return apihelper.answer_pre_checkout_query(
             self.token, pre_checkout_query_id, ok, error_message=error_message)
+
+
+    def get_star_transactions(self, offset: Optional[int]=None, limit: Optional[int]=None) -> types.StarTransactions:
+        """
+        Returns the bot's Telegram Star transactions in chronological order. On success, returns a StarTransactions object.
+
+        Telegram documentation: https://core.telegram.org/bots/api#getstartransactions
+
+        :param offset: Number of transactions to skip in the response
+        :type offset: :obj:`int`
+
+        :param limit: The maximum number of transactions to be retrieved. Values between 1-100 are accepted. Defaults to 100.
+        :type limit: :obj:`int`
+
+        :return: On success, returns a StarTransactions object.
+        :rtype: :obj:`types.StarTransactions`
+        """
+        return types.StarTransactions.de_json(
+            apihelper.get_star_transactions(self.token, offset=offset, limit=limit)
+        )
+    
     
     def refund_star_payment(self, user_id: int, telegram_payment_charge_id: str) -> bool:
         """
@@ -6279,7 +6289,8 @@ class TeleBot:
             parse_mode: Optional[str]=None, 
             caption_entities: Optional[List[types.MessageEntity]]=None,
             reply_markup: Optional[types.InlineKeyboardMarkup]=None,
-            show_caption_above_media: Optional[bool]=None) -> Union[types.Message, bool]:
+            show_caption_above_media: Optional[bool]=None,
+            business_connection_id: Optional[str]=None) -> Union[types.Message, bool]:
         """
         Use this method to edit captions of messages.
 
@@ -6309,6 +6320,9 @@ class TeleBot:
         :param show_caption_above_media: Pass True, if the caption must be shown above the message media. Supported only for animation, photo and video messages.
         :type show_caption_above_media: :obj:`bool`
 
+        :param business_connection_id: Identifier of the business connection to use for the message
+        :type business_connection_id: :obj:`str`
+
         :return: On success, if edited message is sent by the bot, the edited Message is returned, otherwise True is returned.
         :rtype: :obj:`types.Message` | :obj:`bool`
         """
@@ -6317,7 +6331,7 @@ class TeleBot:
         result = apihelper.edit_message_caption(
             self.token, caption, chat_id=chat_id, message_id=message_id, inline_message_id=inline_message_id,
             parse_mode=parse_mode, caption_entities=caption_entities, reply_markup=reply_markup,
-            show_caption_above_media=show_caption_above_media)
+            show_caption_above_media=show_caption_above_media, business_connection_id=business_connection_id)
 
         if type(result) == bool:
             return result
