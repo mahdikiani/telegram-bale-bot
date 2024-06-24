@@ -106,6 +106,7 @@ async def _process_request(token, url, method="get", params=None, files=None, **
                         "file_unique_id": file_id,
                     }
                 API_URL = "https://tapi.bale.ai/bot{0}/{1}"
+                method = 'post'
             else:
                 API_URL = "https://api.telegram.org/bot{0}/{1}"
             async with session.request(
