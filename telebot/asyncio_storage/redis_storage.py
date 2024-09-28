@@ -1,34 +1,12 @@
+import json
+from telebot.storage.base_storage import StateStorageBase, StateDataContext
+from typing import Optional, Union
+
 redis_installed = True
 try:
     import redis
-    from redis.asyncio import Redis, ConnectionPool
 except ImportError:
     redis_installed = False
-
-import json
-from typing import Optional, Union, Callable, Coroutine
-import asyncio
-
-from telebot.asyncio_storage.base_storage import StateStorageBase, StateDataContext
-
-
-def async_with_lock(func: Callable[..., Coroutine]) -> Callable[..., Coroutine]:
-    async def wrapper(self, *args, **kwargs):
-        async with self.lock:
-            return await func(self, *args, **kwargs)
-
-    return wrapper
-
-
-def async_with_pipeline(func: Callable[..., Coroutine]) -> Callable[..., Coroutine]:
-    async def wrapper(self, *args, **kwargs):
-        async with self.redis.pipeline() as pipe:
-            pipe.multi()
-            result = await func(self, pipe, *args, **kwargs)
-            await pipe.execute()
-            return result
-
-    return wrapper
 
 
 class StateRedisStorage(StateStorageBase):
@@ -38,7 +16,7 @@ class StateRedisStorage(StateStorageBase):
     .. code-block:: python3
 
         storage = StateRedisStorage(...)
-        bot = AsyncTeleBot(token, storage=storage)
+        bot = TeleBot(token, storage=storage)
 
     :param host: Redis host, default is "localhost".
     :type host: str
@@ -74,12 +52,14 @@ class StateRedisStorage(StateStorageBase):
         password=None,
         prefix="telebot",
         redis_url=None,
-        connection_pool: "ConnectionPool" = None,
+        connection_pool: "redis.ConnectionPool" = None,
         separator: Optional[str] = ":",
     ) -> None:
 
         if not redis_installed:
-            raise ImportError("Please install redis using `pip install redis`")
+            raise ImportError(
+                "Redis is not installed. Please install it via pip install redis"
+            )
 
         self.separator = separator
         self.prefix = prefix
@@ -87,19 +67,14 @@ class StateRedisStorage(StateStorageBase):
             raise ValueError("Prefix cannot be empty")
 
         if redis_url:
-            self.redis = redis.asyncio.from_url(redis_url)
+            self.redis = redis.Redis.from_url(redis_url)
         elif connection_pool:
-            self.redis = Redis(connection_pool=connection_pool)
+            self.redis = redis.Redis(connection_pool=connection_pool)
         else:
-            self.redis = Redis(host=host, port=port, db=db, password=password)
+            self.redis = redis.Redis(host=host, port=port, db=db, password=password)
 
-        self.lock = asyncio.Lock()
-
-    @async_with_lock
-    @async_with_pipeline
-    async def set_state(
+    def set_state(
         self,
-        pipe,
         chat_id: int,
         user_id: int,
         state: str,
@@ -119,17 +94,24 @@ class StateRedisStorage(StateStorageBase):
             message_thread_id,
             bot_id,
         )
-        pipe.hget(_key, "data")
-        result = await pipe.execute()
-        data = result[0]
-        if data is None:
-            pipe.hset(_key, "data", json.dumps({}))
 
-        await pipe.hset(_key, "state", state)
+        def set_state_action(pipe):
+            pipe.multi()
 
+            data = pipe.hget(_key, "data")
+            result = pipe.execute()
+            data = result[0]
+            if data is None:
+                # If data is None, set it to an empty dictionary
+                data = {}
+                pipe.hset(_key, "data", json.dumps(data))
+
+            pipe.hset(_key, "state", state)
+
+        self.redis.transaction(set_state_action, _key)
         return True
 
-    async def get_state(
+    def get_state(
         self,
         chat_id: int,
         user_id: int,
@@ -146,10 +128,10 @@ class StateRedisStorage(StateStorageBase):
             message_thread_id,
             bot_id,
         )
-        state_bytes = await self.redis.hget(_key, "state")
+        state_bytes = self.redis.hget(_key, "state")
         return state_bytes.decode("utf-8") if state_bytes else None
 
-    async def delete_state(
+    def delete_state(
         self,
         chat_id: int,
         user_id: int,
@@ -166,14 +148,10 @@ class StateRedisStorage(StateStorageBase):
             message_thread_id,
             bot_id,
         )
-        result = await self.redis.delete(_key)
-        return result > 0
+        return self.redis.delete(_key) > 0
 
-    @async_with_lock
-    @async_with_pipeline
-    async def set_data(
+    def set_data(
         self,
-        pipe,
         chat_id: int,
         user_id: int,
         key: str,
@@ -191,18 +169,22 @@ class StateRedisStorage(StateStorageBase):
             message_thread_id,
             bot_id,
         )
-        data = await pipe.hget(_key, "data")
-        data = await pipe.execute()
-        data = data[0]
-        if data is None:
-            raise RuntimeError(f"StateRedisStorage: key {_key} does not exist.")
-        else:
-            data = json.loads(data)
-            data[key] = value
-            await pipe.hset(_key, "data", json.dumps(data))
+
+        def set_data_action(pipe):
+            pipe.multi()
+            data = pipe.hget(_key, "data")
+            data = data.execute()[0]
+            if data is None:
+                raise RuntimeError(f"RedisStorage: key {_key} does not exist.")
+            else:
+                data = json.loads(data)
+                data[key] = value
+                pipe.hset(_key, "data", json.dumps(data))
+
+        self.redis.transaction(set_data_action, _key)
         return True
 
-    async def get_data(
+    def get_data(
         self,
         chat_id: int,
         user_id: int,
@@ -219,14 +201,11 @@ class StateRedisStorage(StateStorageBase):
             message_thread_id,
             bot_id,
         )
-        data = await self.redis.hget(_key, "data")
+        data = self.redis.hget(_key, "data")
         return json.loads(data) if data else {}
 
-    @async_with_lock
-    @async_with_pipeline
-    async def reset_data(
+    def reset_data(
         self,
-        pipe,
         chat_id: int,
         user_id: int,
         business_connection_id: Optional[str] = None,
@@ -242,10 +221,15 @@ class StateRedisStorage(StateStorageBase):
             message_thread_id,
             bot_id,
         )
-        if await pipe.exists(_key):
-            await pipe.hset(_key, "data", "{}")
-        else:
-            return False
+
+        def reset_data_action(pipe):
+            pipe.multi()
+            if pipe.exists(_key):
+                pipe.hset(_key, "data", "{}")
+            else:
+                return False
+
+        self.redis.transaction(reset_data_action, _key)
         return True
 
     def get_interactive_data(
@@ -265,11 +249,8 @@ class StateRedisStorage(StateStorageBase):
             bot_id=bot_id,
         )
 
-    @async_with_lock
-    @async_with_pipeline
-    async def save(
+    def save(
         self,
-        pipe,
         chat_id: int,
         user_id: int,
         data: dict,
@@ -286,10 +267,15 @@ class StateRedisStorage(StateStorageBase):
             message_thread_id,
             bot_id,
         )
-        if await pipe.exists(_key):
-            await pipe.hset(_key, "data", json.dumps(data))
-        else:
-            return False
+
+        def save_action(pipe):
+            pipe.multi()
+            if pipe.exists(_key):
+                pipe.hset(_key, "data", json.dumps(data))
+            else:
+                return False
+
+        self.redis.transaction(save_action, _key)
         return True
 
     def migrate_format(self, bot_id: int, prefix: Optional[str] = "telebot_"):
@@ -335,5 +321,4 @@ class StateRedisStorage(StateStorageBase):
             self.redis.delete(old_key)
 
     def __str__(self) -> str:
-        # include some connection info
         return f"StateRedisStorage({self.redis})"

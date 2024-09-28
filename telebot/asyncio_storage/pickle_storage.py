@@ -19,8 +19,6 @@ def with_lock(func: Callable) -> Callable:
 
     return wrapper
 
-from telebot.asyncio_storage.base_storage import StateContext, StateStorageBase
-
 
 class StatePickleStorage(StateStorageBase):
     """
@@ -274,3 +272,4 @@ class StatePickleStorage(StateStorageBase):
 
     def __str__(self) -> str:
         return f"StatePickleStorage({self.file_path}, {self.prefix})"
+    

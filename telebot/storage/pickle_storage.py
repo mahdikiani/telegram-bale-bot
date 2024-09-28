@@ -12,8 +12,6 @@ def with_lock(func: Callable) -> Callable:
 
     return wrapper
 
-from telebot.storage.base_storage import StateContext, StateStorageBase
-
 
 class StatePickleStorage(StateStorageBase):
     """
