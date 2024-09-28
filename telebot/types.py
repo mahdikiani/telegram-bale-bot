@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+from io import IOBase
 import logging
 import os
-from abc import ABC
-from io import IOBase
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Any, Tuple
+from abc import ABC
 
 try:
     # noinspection PyPackageRequirements
@@ -17,6 +17,7 @@ except ImportError:
 from telebot import service_utils
 from telebot.formatting import apply_html_entities
 
+
 DISABLE_KEYLEN_ERROR = False
 
 logger = logging.getLogger("TeleBot")
@@ -26,7 +27,6 @@ class JsonSerializable(object):
     """
     Subclasses of this class are guaranteed to be able to be converted to JSON format.
     All subclasses of this class must override to_json.
-
     """
 
     def to_json(self):
@@ -45,7 +45,6 @@ class Dictionaryable(object):
     """
     Subclasses of this class are guaranteed to be able to be converted to dictionary.
     All subclasses of this class must override to_dict.
-
     """
 
     def to_dict(self):
@@ -155,6 +154,9 @@ class Update(JsonDeserializable):
         checkout
     :type pre_checkout_query: :class:`telebot.types.PreCheckoutQuery`
 
+    :purchased_paid_media: Optional. A user purchased paid media with a non-empty payload sent by the bot in a non-channel chat
+    :type purchased_paid_media: :class:`telebot.types.PaidMediaPurchased`
+
     :param poll: Optional. New poll state. Bots receive only updates about stopped polls and polls, which are sent by the
         bot
     :type poll: :class:`telebot.types.Poll`
@@ -232,41 +234,92 @@ class Update(JsonDeserializable):
         deleted_business_messages = BusinessMessagesDeleted.de_json(
             obj.get("deleted_business_messages")
         )
+        purchased_paid_media = PaidMediaPurchased.de_json(
+            obj.get("purchased_paid_media")
+        )
 
-        return cls(update_id, message, edited_message, channel_post, edited_channel_post, inline_query,
-                   chosen_inline_result, callback_query, shipping_query, pre_checkout_query, poll, poll_answer,
-                   my_chat_member, chat_member, chat_join_request, message_reaction, message_reaction_count,
-                   removed_chat_boost, chat_boost, business_connection, business_message, edited_business_message,
-                   deleted_business_messages)
+        return cls(
+            update_id,
+            message,
+            edited_message,
+            channel_post,
+            edited_channel_post,
+            inline_query,
+            chosen_inline_result,
+            callback_query,
+            shipping_query,
+            pre_checkout_query,
+            poll,
+            poll_answer,
+            my_chat_member,
+            chat_member,
+            chat_join_request,
+            message_reaction,
+            message_reaction_count,
+            removed_chat_boost,
+            chat_boost,
+            business_connection,
+            business_message,
+            edited_business_message,
+            deleted_business_messages,
+            purchased_paid_media,
+        )
 
-    def __init__(self, update_id, message, edited_message, channel_post, edited_channel_post, inline_query,
-                 chosen_inline_result, callback_query, shipping_query, pre_checkout_query, poll, poll_answer,
-                 my_chat_member, chat_member, chat_join_request, message_reaction, message_reaction_count,
-                 removed_chat_boost, chat_boost, business_connection, business_message, edited_business_message,
-                 deleted_business_messages, **kwargs):
-        self.update_id = update_id
-        self.message = message
-        self.edited_message = edited_message
-        self.channel_post = channel_post
-        self.edited_channel_post = edited_channel_post
-        self.inline_query = inline_query
-        self.chosen_inline_result = chosen_inline_result
-        self.callback_query = callback_query
-        self.shipping_query = shipping_query
-        self.pre_checkout_query = pre_checkout_query
-        self.poll = poll
-        self.poll_answer = poll_answer
-        self.my_chat_member = my_chat_member
-        self.chat_member = chat_member
-        self.chat_join_request = chat_join_request
-        self.message_reaction = message_reaction
-        self.message_reaction_count = message_reaction_count
-        self.removed_chat_boost = removed_chat_boost
-        self.chat_boost = chat_boost
-        self.business_connection = business_connection
-        self.business_message = business_message
-        self.edited_business_message = edited_business_message
-        self.deleted_business_messages = deleted_business_messages
+    def __init__(
+        self,
+        update_id,
+        message,
+        edited_message,
+        channel_post,
+        edited_channel_post,
+        inline_query,
+        chosen_inline_result,
+        callback_query,
+        shipping_query,
+        pre_checkout_query,
+        poll,
+        poll_answer,
+        my_chat_member,
+        chat_member,
+        chat_join_request,
+        message_reaction,
+        message_reaction_count,
+        removed_chat_boost,
+        chat_boost,
+        business_connection,
+        business_message,
+        edited_business_message,
+        deleted_business_messages,
+        purchased_paid_media,
+    ):
+        self.update_id: int = update_id
+        self.message: Optional[Message] = message
+        self.edited_message: Optional[Message] = edited_message
+        self.channel_post: Optional[Message] = channel_post
+        self.edited_channel_post: Optional[Message] = edited_channel_post
+        self.inline_query: Optional[InlineQuery] = inline_query
+        self.chosen_inline_result: Optional[ChosenInlineResult] = chosen_inline_result
+        self.callback_query: Optional[CallbackQuery] = callback_query
+        self.shipping_query: Optional[ShippingQuery] = shipping_query
+        self.pre_checkout_query: Optional[PreCheckoutQuery] = pre_checkout_query
+        self.poll: Optional[Poll] = poll
+        self.poll_answer: Optional[PollAnswer] = poll_answer
+        self.my_chat_member: Optional[ChatMemberUpdated] = my_chat_member
+        self.chat_member: Optional[ChatMemberUpdated] = chat_member
+        self.chat_join_request: Optional[ChatJoinRequest] = chat_join_request
+        self.message_reaction: Optional[MessageReactionUpdated] = message_reaction
+        self.message_reaction_count: Optional[MessageReactionCountUpdated] = (
+            message_reaction_count
+        )
+        self.removed_chat_boost: Optional[ChatBoostRemoved] = removed_chat_boost
+        self.chat_boost: Optional[ChatBoostUpdated] = chat_boost
+        self.business_connection: Optional[BusinessConnection] = business_connection
+        self.business_message: Optional[Message] = business_message
+        self.edited_business_message: Optional[Message] = edited_business_message
+        self.deleted_business_messages: Optional[BusinessMessagesDeleted] = (
+            deleted_business_messages
+        )
+        self.purchased_paid_media: Optional[PaidMediaPurchased] = purchased_paid_media
 
 
 class ChatMemberUpdated(JsonDeserializable):
@@ -315,10 +368,19 @@ class ChatMemberUpdated(JsonDeserializable):
         obj["new_chat_member"] = ChatMember.de_json(obj["new_chat_member"])
         obj["invite_link"] = ChatInviteLink.de_json(obj.get("invite_link"))
         return cls(**obj)
-    
-    def __init__(self, chat, from_user, date, old_chat_member, new_chat_member, invite_link=None,
-                 via_join_request=None, via_chat_folder_invite_link=None,
-                 **kwargs):
+
+    def __init__(
+        self,
+        chat,
+        from_user,
+        date,
+        old_chat_member,
+        new_chat_member,
+        invite_link=None,
+        via_join_request=None,
+        via_chat_folder_invite_link=None,
+        **kwargs,
+    ):
         self.chat: Chat = chat
         self.from_user: User = from_user
         self.date: int = date
@@ -398,8 +460,8 @@ class ChatJoinRequest(JsonDeserializable):
         self.chat: Chat = chat
         self.from_user: User = from_user
         self.date: str = date
-        self.bio: str = bio
-        self.invite_link: ChatInviteLink = invite_link
+        self.bio: Optional[str] = bio
+        self.invite_link: Optional[ChatInviteLink] = invite_link
         self.user_chat_id: int = user_chat_id
 
 
@@ -465,15 +527,17 @@ class WebhookInfo(JsonDeserializable):
         allowed_updates=None,
         **kwargs,
     ):
-        self.url = url
-        self.has_custom_certificate = has_custom_certificate
-        self.pending_update_count = pending_update_count
-        self.ip_address = ip_address
-        self.last_error_date = last_error_date
-        self.last_error_message = last_error_message
-        self.last_synchronization_error_date = last_synchronization_error_date
-        self.max_connections = max_connections
-        self.allowed_updates = allowed_updates
+        self.url: str = url
+        self.has_custom_certificate: bool = has_custom_certificate
+        self.pending_update_count: int = pending_update_count
+        self.ip_address: Optional[str] = ip_address
+        self.last_error_date: Optional[int] = last_error_date
+        self.last_error_message: Optional[str] = last_error_message
+        self.last_synchronization_error_date: Optional[int] = (
+            last_synchronization_error_date
+        )
+        self.max_connections: Optional[int] = max_connections
+        self.allowed_updates: Optional[int] = allowed_updates
 
 
 class User(JsonDeserializable, Dictionaryable, JsonSerializable):
@@ -521,6 +585,9 @@ class User(JsonDeserializable, Dictionaryable, JsonSerializable):
     :param can_connect_to_business: Optional. True, if the bot can be connected to a Telegram Business account to receive its messages. Returned only in getMe.
     :type can_connect_to_business: :obj:`bool`
 
+    :param has_main_web_app: Optional. True, if the bot has a main Web App. Returned only in getMe.
+    :type has_main_web_app: :obj:`bool`
+
     :return: Instance of the class
     :rtype: :class:`telebot.types.User`
     """
@@ -533,24 +600,39 @@ class User(JsonDeserializable, Dictionaryable, JsonSerializable):
         return cls(**obj)
 
     # noinspection PyShadowingBuiltins
-    def __init__(self, id, is_bot, first_name, last_name=None, username=None, language_code=None,
-                 can_join_groups=None, can_read_all_group_messages=None, supports_inline_queries=None, 
-                 is_premium=None, added_to_attachment_menu=None, can_connect_to_business=None, **kwargs):
+    def __init__(
+        self,
+        id,
+        is_bot,
+        first_name,
+        last_name=None,
+        username=None,
+        language_code=None,
+        can_join_groups=None,
+        can_read_all_group_messages=None,
+        supports_inline_queries=None,
+        is_premium=None,
+        added_to_attachment_menu=None,
+        can_connect_to_business=None,
+        has_main_web_app=None,
+        **kwargs,
+    ):
         self.id: int = id
         self.is_bot: bool = is_bot
         self.first_name: str = first_name
-        self.username: str = username
-        self.last_name: str = last_name
-        self.language_code: str = language_code
-        self.can_join_groups: bool = can_join_groups
-        self.can_read_all_group_messages: bool = can_read_all_group_messages
-        self.supports_inline_queries: bool = supports_inline_queries
-        self.is_premium: bool = is_premium
-        self.added_to_attachment_menu: bool = added_to_attachment_menu
-        self.can_connect_to_business: bool = can_connect_to_business
+        self.username: Optional[str] = username
+        self.last_name: Optional[str] = last_name
+        self.language_code: Optional[str] = language_code
+        self.can_join_groups: Optional[bool] = can_join_groups
+        self.can_read_all_group_messages: Optional[bool] = can_read_all_group_messages
+        self.supports_inline_queries: Optional[bool] = supports_inline_queries
+        self.is_premium: Optional[bool] = is_premium
+        self.added_to_attachment_menu: Optional[bool] = added_to_attachment_menu
+        self.can_connect_to_business: Optional[bool] = can_connect_to_business
+        self.has_main_web_app: Optional[bool] = has_main_web_app
 
     @property
-    def full_name(self):
+    def full_name(self) -> str:
         """
         :return: User's full name
         """
@@ -563,18 +645,21 @@ class User(JsonDeserializable, Dictionaryable, JsonSerializable):
         return json.dumps(self.to_dict())
 
     def to_dict(self):
-        return {'id': self.id,
-                'is_bot': self.is_bot,
-                'first_name': self.first_name,
-                'last_name': self.last_name,
-                'username': self.username,
-                'language_code': self.language_code,
-                'can_join_groups': self.can_join_groups,
-                'can_read_all_group_messages': self.can_read_all_group_messages,
-                'supports_inline_queries': self.supports_inline_queries,
-                'is_premium': self.is_premium,
-                'added_to_attachment_menu': self.added_to_attachment_menu,
-                'can_connect_to_business': self.can_connect_to_business}
+        return {
+            "id": self.id,
+            "is_bot": self.is_bot,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "username": self.username,
+            "language_code": self.language_code,
+            "can_join_groups": self.can_join_groups,
+            "can_read_all_group_messages": self.can_read_all_group_messages,
+            "supports_inline_queries": self.supports_inline_queries,
+            "is_premium": self.is_premium,
+            "added_to_attachment_menu": self.added_to_attachment_menu,
+            "can_connect_to_business": self.can_connect_to_business,
+            "has_main_web_app": self.has_main_web_app,
+        }
 
 
 # noinspection PyShadowingBuiltins
@@ -738,6 +823,10 @@ class ChatFullInfo(JsonDeserializable):
     :param location: Optional. For supergroups, the location to which the supergroup is connected. Returned only in getChat.
     :type location: :class:`telebot.types.ChatLocation`
 
+    :param can_send_paid_media: Optional. True, if paid media messages can be sent or forwarded to the channel chat.
+        The field is available only for channel chats.
+    :type can_send_paid_media: :obj:`bool`
+
     :return: Instance of the class
     :rtype: :class:`telebot.types.ChatFullInfo`
     """
@@ -775,66 +864,108 @@ class ChatFullInfo(JsonDeserializable):
             obj["birthdate"] = Birthdate.de_json(obj["birthdate"])
         return cls(**obj)
 
-    def __init__(self, id, type, title=None, username=None, first_name=None,
-                 last_name=None, photo=None, bio=None, has_private_forwards=None,
-                 description=None, invite_link=None, pinned_message=None, 
-                 permissions=None, slow_mode_delay=None,
-                 message_auto_delete_time=None, has_protected_content=None, sticker_set_name=None,
-                 can_set_sticker_set=None, linked_chat_id=None, location=None, 
-                 join_to_send_messages=None, join_by_request=None, has_restricted_voice_and_video_messages=None, 
-                 is_forum=None, max_reaction_count=None, active_usernames=None, emoji_status_custom_emoji_id=None,
-                 has_hidden_members=None, has_aggressive_anti_spam_enabled=None, emoji_status_expiration_date=None, 
-                 available_reactions=None, accent_color_id=None, background_custom_emoji_id=None, profile_accent_color_id=None,
-                 profile_background_custom_emoji_id=None, has_visible_history=None, 
-                 unrestrict_boost_count=None, custom_emoji_sticker_set_name=None, business_intro=None, business_location=None,
-                    business_opening_hours=None, personal_chat=None, birthdate=None, **kwargs):
+    def __init__(
+        self,
+        id,
+        type,
+        title=None,
+        username=None,
+        first_name=None,
+        last_name=None,
+        photo=None,
+        bio=None,
+        has_private_forwards=None,
+        description=None,
+        invite_link=None,
+        pinned_message=None,
+        permissions=None,
+        slow_mode_delay=None,
+        message_auto_delete_time=None,
+        has_protected_content=None,
+        sticker_set_name=None,
+        can_set_sticker_set=None,
+        linked_chat_id=None,
+        location=None,
+        join_to_send_messages=None,
+        join_by_request=None,
+        has_restricted_voice_and_video_messages=None,
+        is_forum=None,
+        max_reaction_count=None,
+        active_usernames=None,
+        emoji_status_custom_emoji_id=None,
+        has_hidden_members=None,
+        has_aggressive_anti_spam_enabled=None,
+        emoji_status_expiration_date=None,
+        available_reactions=None,
+        accent_color_id=None,
+        background_custom_emoji_id=None,
+        profile_accent_color_id=None,
+        profile_background_custom_emoji_id=None,
+        has_visible_history=None,
+        unrestrict_boost_count=None,
+        custom_emoji_sticker_set_name=None,
+        business_intro=None,
+        business_location=None,
+        business_opening_hours=None,
+        personal_chat=None,
+        birthdate=None,
+        can_send_paid_media=None,
+        **kwargs,
+    ):
         self.id: int = id
         self.type: str = type
-        self.title: str = title
-        self.username: str = username
-        self.first_name: str = first_name
-        self.last_name: str = last_name
-        self.is_forum: bool = is_forum
-        self.max_reaction_count: int = max_reaction_count
-        self.photo: ChatPhoto = photo
-        self.bio: str = bio
-        self.join_to_send_messages: bool = join_to_send_messages
-        self.join_by_request: bool = join_by_request
-        self.has_private_forwards: bool = has_private_forwards
-        self.has_restricted_voice_and_video_messages: bool = (
+        self.title: Optional[str] = title
+        self.username: Optional[str] = username
+        self.first_name: Optional[str] = first_name
+        self.last_name: Optional[str] = last_name
+        self.is_forum: Optional[bool] = is_forum
+        self.max_reaction_count: Optional[int] = max_reaction_count
+        self.photo: Optional[ChatPhoto] = photo
+        self.bio: Optional[str] = bio
+        self.join_to_send_messages: Optional[bool] = join_to_send_messages
+        self.join_by_request: Optional[bool] = join_by_request
+        self.has_private_forwards: Optional[bool] = has_private_forwards
+        self.has_restricted_voice_and_video_messages: Optional[bool] = (
             has_restricted_voice_and_video_messages
         )
-        self.description: str = description
-        self.invite_link: str = invite_link
-        self.pinned_message: Message = pinned_message
-        self.permissions: ChatPermissions = permissions
-        self.slow_mode_delay: int = slow_mode_delay
-        self.message_auto_delete_time: int = message_auto_delete_time
-        self.has_protected_content: bool = has_protected_content
-        self.sticker_set_name: str = sticker_set_name
-        self.can_set_sticker_set: bool = can_set_sticker_set
-        self.linked_chat_id: int = linked_chat_id
-        self.location: ChatLocation = location
-        self.active_usernames: List[str] = active_usernames
-        self.emoji_status_custom_emoji_id: str = emoji_status_custom_emoji_id
-        self.has_hidden_members: bool = has_hidden_members
-        self.has_aggressive_anti_spam_enabled: bool = has_aggressive_anti_spam_enabled
-        self.emoji_status_expiration_date: int = emoji_status_expiration_date
-        self.available_reactions: List[ReactionType] = available_reactions
-        self.accent_color_id: int = accent_color_id
-        self.background_custom_emoji_id: str = background_custom_emoji_id
-        self.profile_accent_color_id: int = profile_accent_color_id
-        self.profile_background_custom_emoji_id: str = (
+        self.description: Optional[str] = description
+        self.invite_link: Optional[str] = invite_link
+        self.pinned_message: Optional[Message] = pinned_message
+        self.permissions: Optional[ChatPermissions] = permissions
+        self.slow_mode_delay: Optional[int] = slow_mode_delay
+        self.message_auto_delete_time: Optional[int] = message_auto_delete_time
+        self.has_protected_content: Optional[bool] = has_protected_content
+        self.sticker_set_name: Optional[str] = sticker_set_name
+        self.can_set_sticker_set: Optional[bool] = can_set_sticker_set
+        self.linked_chat_id: Optional[int] = linked_chat_id
+        self.location: Optional[ChatLocation] = location
+        self.active_usernames: Optional[List[str]] = active_usernames
+        self.emoji_status_custom_emoji_id: Optional[str] = emoji_status_custom_emoji_id
+        self.has_hidden_members: Optional[bool] = has_hidden_members
+        self.has_aggressive_anti_spam_enabled: Optional[bool] = (
+            has_aggressive_anti_spam_enabled
+        )
+        self.emoji_status_expiration_date: Optional[int] = emoji_status_expiration_date
+        self.available_reactions: Optional[List[ReactionType]] = available_reactions
+        self.accent_color_id: Optional[int] = accent_color_id
+        self.background_custom_emoji_id: Optional[str] = background_custom_emoji_id
+        self.profile_accent_color_id: Optional[int] = profile_accent_color_id
+        self.profile_background_custom_emoji_id: Optional[str] = (
             profile_background_custom_emoji_id
         )
-        self.has_visible_history: bool = has_visible_history
-        self.unrestrict_boost_count: int = unrestrict_boost_count
-        self.custom_emoji_sticker_set_name: str = custom_emoji_sticker_set_name
-        self.business_intro: BusinessIntro = business_intro
-        self.business_location: BusinessLocation = business_location
-        self.business_opening_hours: BusinessOpeningHours = business_opening_hours
-        self.personal_chat: Chat = personal_chat
-        self.birthdate: Birthdate = birthdate
+        self.has_visible_history: Optional[bool] = has_visible_history
+        self.unrestrict_boost_count: Optional[int] = unrestrict_boost_count
+        self.custom_emoji_sticker_set_name: Optional[str] = (
+            custom_emoji_sticker_set_name
+        )
+        self.business_intro: Optional[BusinessIntro] = business_intro
+        self.business_location: Optional[BusinessLocation] = business_location
+        self.business_opening_hours: Optional[BusinessOpeningHours] = (
+            business_opening_hours
+        )
+        self.personal_chat: Optional[Chat] = personal_chat
+        self.birthdate: Optional[Birthdate] = birthdate
+        self.can_send_paid_media: Optional[bool] = can_send_paid_media
 
 
 class Chat(ChatFullInfo):
@@ -846,6 +977,7 @@ class Chat(ChatFullInfo):
 
     Currently Chat is left as full copy of ChatFullInfo for compatibility.
     """
+
     pass
 
 
@@ -870,7 +1002,7 @@ class MessageID(JsonDeserializable):
         return cls(**obj)
 
     def __init__(self, message_id, **kwargs):
-        self.message_id = message_id
+        self.message_id: int = message_id
 
 
 class WebAppData(JsonDeserializable, Dictionaryable):
@@ -898,8 +1030,8 @@ class WebAppData(JsonDeserializable, Dictionaryable):
         return cls(**obj)
 
     def __init__(self, data, button_text, **kwargs):
-        self.data = data
-        self.button_text = button_text
+        self.data: str = data
+        self.button_text: str = button_text
 
     def to_dict(self):
         return {"data": self.data, "button_text": self.button_text}
@@ -1011,6 +1143,9 @@ class Message(JsonDeserializable):
     :param document: Optional. Message is a general file, information about the file
     :type document: :class:`telebot.types.Document`
 
+    :param paid_media: Optional. Message contains paid media; information about the paid media
+    :type paid_media: :class:`telebot.types.PaidMediaInfo`
+
     :param photo: Optional. Message is a photo, available sizes of the photo
     :type photo: :obj:`list` of :class:`telebot.types.PhotoSize`
 
@@ -1117,6 +1252,9 @@ class Message(JsonDeserializable):
     :param successful_payment: Optional. Message is a service message about a successful payment, information about
         the payment. More about payments »
     :type successful_payment: :class:`telebot.types.SuccessfulPayment`
+
+    :param refunded_payment: Optional. Message is a service message about a refunded payment, information about the payment. More about payments »
+    :type refunded_payment: :class:`telebot.types.RefundedPayment`
 
     :param users_shared: Optional. Service message: a user was shared with the bot
     :type users_shared: :class:`telebot.types.UsersShared`
@@ -1316,126 +1454,163 @@ class Message(JsonDeserializable):
                 # date.	Always 0. The field can be used to differentiate regular and inaccessible messages.
                 opts["pinned_message"] = InaccessibleMessage.de_json(pinned_message)
             else:
-                opts['pinned_message'] = Message.de_json(pinned_message)
-            content_type = 'pinned_message'
-        if 'invoice' in obj:
-            opts['invoice'] = Invoice.de_json(obj['invoice'])
-            content_type = 'invoice'
-        if 'successful_payment' in obj:
-            opts['successful_payment'] = SuccessfulPayment.de_json(obj['successful_payment'])
-            content_type = 'successful_payment'
-        if 'connected_website' in obj:
-            opts['connected_website'] = obj['connected_website']
-            content_type = 'connected_website'
-        if 'poll' in obj:
-            opts['poll'] = Poll.de_json(obj['poll'])
-            content_type = 'poll'
-        if 'passport_data' in obj:
-            opts['passport_data'] = obj['passport_data']
-            content_type = 'passport_data'
-        if 'proximity_alert_triggered' in obj:
-            opts['proximity_alert_triggered'] = ProximityAlertTriggered.de_json(obj[
-                'proximity_alert_triggered'])
-            content_type = 'proximity_alert_triggered'
-        if 'video_chat_scheduled' in obj:
-            opts['video_chat_scheduled'] = VideoChatScheduled.de_json(obj['video_chat_scheduled'])
-            content_type = 'video_chat_scheduled'
-        if 'video_chat_started' in obj:
-            opts['video_chat_started'] = VideoChatStarted.de_json(obj['video_chat_started'])
-            content_type = 'video_chat_started'
-        if 'video_chat_ended' in obj:
-            opts['video_chat_ended'] = VideoChatEnded.de_json(obj['video_chat_ended'])
-            content_type = 'video_chat_ended'
-        if 'video_chat_participants_invited' in obj:
-            opts['video_chat_participants_invited'] = VideoChatParticipantsInvited.de_json(obj['video_chat_participants_invited'])
-            content_type = 'video_chat_participants_invited'
-        if 'web_app_data' in obj:
-            opts['web_app_data'] = WebAppData.de_json(obj['web_app_data'])
-            content_type = 'web_app_data'
-        if 'message_auto_delete_timer_changed' in obj:
-            opts['message_auto_delete_timer_changed'] = MessageAutoDeleteTimerChanged.de_json(obj['message_auto_delete_timer_changed'])
-            content_type = 'message_auto_delete_timer_changed'
-        if 'reply_markup' in obj:
-            opts['reply_markup'] = InlineKeyboardMarkup.de_json(obj['reply_markup'])
-        if 'chat_background_set' in obj:
-            opts['chat_background_set'] = ChatBackground.de_json(obj['chat_background_set'])
-            content_type = 'chat_background_set'
-        if 'forum_topic_created' in obj:
-            opts['forum_topic_created'] = ForumTopicCreated.de_json(obj['forum_topic_created'])
-            content_type = 'forum_topic_created'
-        if 'forum_topic_closed' in obj:
-            opts['forum_topic_closed'] = ForumTopicClosed.de_json(obj['forum_topic_closed'])
-            content_type = 'forum_topic_closed'
-        if 'forum_topic_reopened' in obj:
-            opts['forum_topic_reopened'] = ForumTopicReopened.de_json(obj['forum_topic_reopened'])
-            content_type = 'forum_topic_reopened'
-        if 'has_media_spoiler' in obj:
-            opts['has_media_spoiler'] = obj['has_media_spoiler']
-        if 'forum_topic_edited' in obj:
-            opts['forum_topic_edited'] = ForumTopicEdited.de_json(obj['forum_topic_edited'])
-            content_type = 'forum_topic_edited'
-        if 'general_forum_topic_hidden' in obj:
-            opts['general_forum_topic_hidden'] = GeneralForumTopicHidden.de_json(obj['general_forum_topic_hidden'])
-            content_type = 'general_forum_topic_hidden'
-        if 'general_forum_topic_unhidden' in obj:
-            opts['general_forum_topic_unhidden'] = GeneralForumTopicUnhidden.de_json(obj['general_forum_topic_unhidden'])
-            content_type = 'general_forum_topic_unhidden'
-        if 'write_access_allowed' in obj:
-            opts['write_access_allowed'] = WriteAccessAllowed.de_json(obj['write_access_allowed'])
-            content_type = 'write_access_allowed'
-        if 'users_shared' in obj:
-            opts['users_shared'] = UsersShared.de_json(obj['users_shared'])
-            content_type = 'users_shared' # COMPATIBILITY BROKEN!
-        if 'chat_shared' in obj:
-            opts['chat_shared'] = ChatShared.de_json(obj['chat_shared'])
-            content_type = 'chat_shared'
-        if 'story' in obj:
-            opts['story'] = Story.de_json(obj['story'])
-            content_type = 'story'
-        if 'external_reply' in obj:
-            opts['external_reply'] = ExternalReplyInfo.de_json(obj['external_reply'])
-        if 'quote' in obj:
-            opts['quote'] = TextQuote.de_json(obj['quote'])
-        if 'link_preview_options' in obj:
-            opts['link_preview_options'] = LinkPreviewOptions.de_json(obj['link_preview_options'])
-        if 'giveaway_created' in obj:
-            opts['giveaway_created'] = GiveawayCreated.de_json(obj['giveaway_created'])
-            content_type = 'giveaway_created'
-        if 'giveaway' in obj:
-            opts['giveaway'] = Giveaway.de_json(obj['giveaway'])
-            content_type = 'giveaway'
-        if 'giveaway_winners' in obj:
-            opts['giveaway_winners'] = GiveawayWinners.de_json(obj['giveaway_winners'])
-            content_type = 'giveaway_winners'
-        if 'giveaway_completed' in obj:
-            opts['giveaway_completed'] = GiveawayCompleted.de_json(obj['giveaway_completed'])
-            content_type = 'giveaway_completed'
-        if 'forward_origin' in obj:
-            opts['forward_origin'] = MessageOrigin.de_json(obj['forward_origin'])
-        if 'boost_added' in obj:
-            opts['boost_added'] = ChatBoostAdded.de_json(obj['boost_added'])
-            content_type = 'boost_added'
-        if 'sender_boost_count' in obj:
-            opts['sender_boost_count'] = obj['sender_boost_count']
-        if 'reply_to_story' in obj:
-            opts['reply_to_story'] = Story.de_json(obj['reply_to_story'])
-        if 'sender_business_bot' in obj:
-            opts['sender_business_bot'] = User.de_json(obj['sender_business_bot'])
-        if 'business_connection_id' in obj:
-            opts['business_connection_id'] = obj['business_connection_id']
-        if 'is_from_offline' in obj:
-            opts['is_from_offline'] = obj['is_from_offline']
-        if 'effect_id' in obj:
-            opts['effect_id'] = obj['effect_id']
-        if 'show_caption_above_media' in obj:
-            opts['show_caption_above_media'] = obj['show_caption_above_media']
-
-
+                opts["pinned_message"] = Message.de_json(pinned_message)
+            content_type = "pinned_message"
+        if "invoice" in obj:
+            opts["invoice"] = Invoice.de_json(obj["invoice"])
+            content_type = "invoice"
+        if "successful_payment" in obj:
+            opts["successful_payment"] = SuccessfulPayment.de_json(
+                obj["successful_payment"]
+            )
+            content_type = "successful_payment"
+        if "connected_website" in obj:
+            opts["connected_website"] = obj["connected_website"]
+            content_type = "connected_website"
+        if "poll" in obj:
+            opts["poll"] = Poll.de_json(obj["poll"])
+            content_type = "poll"
+        if "passport_data" in obj:
+            opts["passport_data"] = obj["passport_data"]
+            content_type = "passport_data"
+        if "proximity_alert_triggered" in obj:
+            opts["proximity_alert_triggered"] = ProximityAlertTriggered.de_json(
+                obj["proximity_alert_triggered"]
+            )
+            content_type = "proximity_alert_triggered"
+        if "video_chat_scheduled" in obj:
+            opts["video_chat_scheduled"] = VideoChatScheduled.de_json(
+                obj["video_chat_scheduled"]
+            )
+            content_type = "video_chat_scheduled"
+        if "video_chat_started" in obj:
+            opts["video_chat_started"] = VideoChatStarted.de_json(
+                obj["video_chat_started"]
+            )
+            content_type = "video_chat_started"
+        if "video_chat_ended" in obj:
+            opts["video_chat_ended"] = VideoChatEnded.de_json(obj["video_chat_ended"])
+            content_type = "video_chat_ended"
+        if "video_chat_participants_invited" in obj:
+            opts["video_chat_participants_invited"] = (
+                VideoChatParticipantsInvited.de_json(
+                    obj["video_chat_participants_invited"]
+                )
+            )
+            content_type = "video_chat_participants_invited"
+        if "web_app_data" in obj:
+            opts["web_app_data"] = WebAppData.de_json(obj["web_app_data"])
+            content_type = "web_app_data"
+        if "message_auto_delete_timer_changed" in obj:
+            opts["message_auto_delete_timer_changed"] = (
+                MessageAutoDeleteTimerChanged.de_json(
+                    obj["message_auto_delete_timer_changed"]
+                )
+            )
+            content_type = "message_auto_delete_timer_changed"
+        if "reply_markup" in obj:
+            opts["reply_markup"] = InlineKeyboardMarkup.de_json(obj["reply_markup"])
+        if "chat_background_set" in obj:
+            opts["chat_background_set"] = ChatBackground.de_json(
+                obj["chat_background_set"]
+            )
+            content_type = "chat_background_set"
+        if "forum_topic_created" in obj:
+            opts["forum_topic_created"] = ForumTopicCreated.de_json(
+                obj["forum_topic_created"]
+            )
+            content_type = "forum_topic_created"
+        if "forum_topic_closed" in obj:
+            opts["forum_topic_closed"] = ForumTopicClosed.de_json(
+                obj["forum_topic_closed"]
+            )
+            content_type = "forum_topic_closed"
+        if "forum_topic_reopened" in obj:
+            opts["forum_topic_reopened"] = ForumTopicReopened.de_json(
+                obj["forum_topic_reopened"]
+            )
+            content_type = "forum_topic_reopened"
+        if "has_media_spoiler" in obj:
+            opts["has_media_spoiler"] = obj["has_media_spoiler"]
+        if "forum_topic_edited" in obj:
+            opts["forum_topic_edited"] = ForumTopicEdited.de_json(
+                obj["forum_topic_edited"]
+            )
+            content_type = "forum_topic_edited"
+        if "general_forum_topic_hidden" in obj:
+            opts["general_forum_topic_hidden"] = GeneralForumTopicHidden.de_json(
+                obj["general_forum_topic_hidden"]
+            )
+            content_type = "general_forum_topic_hidden"
+        if "general_forum_topic_unhidden" in obj:
+            opts["general_forum_topic_unhidden"] = GeneralForumTopicUnhidden.de_json(
+                obj["general_forum_topic_unhidden"]
+            )
+            content_type = "general_forum_topic_unhidden"
+        if "write_access_allowed" in obj:
+            opts["write_access_allowed"] = WriteAccessAllowed.de_json(
+                obj["write_access_allowed"]
+            )
+            content_type = "write_access_allowed"
+        if "users_shared" in obj:
+            opts["users_shared"] = UsersShared.de_json(obj["users_shared"])
+            content_type = "users_shared"  # COMPATIBILITY BROKEN!
+        if "chat_shared" in obj:
+            opts["chat_shared"] = ChatShared.de_json(obj["chat_shared"])
+            content_type = "chat_shared"
+        if "story" in obj:
+            opts["story"] = Story.de_json(obj["story"])
+            content_type = "story"
+        if "external_reply" in obj:
+            opts["external_reply"] = ExternalReplyInfo.de_json(obj["external_reply"])
+        if "quote" in obj:
+            opts["quote"] = TextQuote.de_json(obj["quote"])
+        if "link_preview_options" in obj:
+            opts["link_preview_options"] = LinkPreviewOptions.de_json(
+                obj["link_preview_options"]
+            )
+        if "giveaway_created" in obj:
+            opts["giveaway_created"] = GiveawayCreated.de_json(obj["giveaway_created"])
+            content_type = "giveaway_created"
+        if "giveaway" in obj:
+            opts["giveaway"] = Giveaway.de_json(obj["giveaway"])
+            content_type = "giveaway"
+        if "giveaway_winners" in obj:
+            opts["giveaway_winners"] = GiveawayWinners.de_json(obj["giveaway_winners"])
+            content_type = "giveaway_winners"
+        if "giveaway_completed" in obj:
+            opts["giveaway_completed"] = GiveawayCompleted.de_json(
+                obj["giveaway_completed"]
+            )
+            content_type = "giveaway_completed"
+        if "forward_origin" in obj:
+            opts["forward_origin"] = MessageOrigin.de_json(obj["forward_origin"])
+        if "boost_added" in obj:
+            opts["boost_added"] = ChatBoostAdded.de_json(obj["boost_added"])
+            content_type = "boost_added"
+        if "sender_boost_count" in obj:
+            opts["sender_boost_count"] = obj["sender_boost_count"]
+        if "reply_to_story" in obj:
+            opts["reply_to_story"] = Story.de_json(obj["reply_to_story"])
+        if "sender_business_bot" in obj:
+            opts["sender_business_bot"] = User.de_json(obj["sender_business_bot"])
+        if "business_connection_id" in obj:
+            opts["business_connection_id"] = obj["business_connection_id"]
+        if "is_from_offline" in obj:
+            opts["is_from_offline"] = obj["is_from_offline"]
+        if "effect_id" in obj:
+            opts["effect_id"] = obj["effect_id"]
+        if "show_caption_above_media" in obj:
+            opts["show_caption_above_media"] = obj["show_caption_above_media"]
+        if "paid_media" in obj:
+            opts["paid_media"] = PaidMediaInfo.de_json(obj["paid_media"])
+        if "refunded_payment" in obj:
+            opts["refunded_payment"] = RefundedPayment.de_json(obj["refunded_payment"])
 
         return cls(message_id, from_user, date, chat, content_type, opts, json_string)
 
     @classmethod
-    def parse_chat(cls, chat):
+    def parse_chat(cls, chat) -> Union[User, GroupChat]:
         """
         Parses chat.
         """
@@ -1445,7 +1620,7 @@ class Message(JsonDeserializable):
             return User.de_json(chat)
 
     @classmethod
-    def parse_photo(cls, photo_size_array):
+    def parse_photo(cls, photo_size_array) -> List[PhotoSize]:
         """
         Parses photo array.
         """
@@ -1455,7 +1630,7 @@ class Message(JsonDeserializable):
         return ret
 
     @classmethod
-    def parse_entities(cls, message_entity_array):
+    def parse_entities(cls, message_entity_array) -> List[MessageEntity]:
         """
         Parses message entity array.
         """
@@ -1472,7 +1647,7 @@ class Message(JsonDeserializable):
             message_id  # Lets fix the telegram usability ####up with ID in Message :)
         )
         self.message_id: int = message_id
-        self.from_user: User = from_user
+        self.from_user: Optional[User] = from_user
         self.date: int = date
         self.chat: Chat = chat
         self.sender_chat: Optional[Chat] = None
@@ -1544,25 +1719,42 @@ class Message(JsonDeserializable):
         self.is_from_offline: Optional[bool] = None
         self.effect_id: Optional[str] = None
         self.show_caption_above_media: Optional[bool] = None
+        self.paid_media: Optional[PaidMediaInfo] = None
+        self.refunded_payment: Optional[RefundedPayment] = None
+        self.proximity_alert_triggered: Optional[ProximityAlertTriggered] = None
+        self.video_chat_scheduled: Optional[VideoChatScheduled] = None
+        self.video_chat_started: Optional[VideoChatStarted] = None
+        self.video_chat_ended: Optional[VideoChatEnded] = None
+        self.video_chat_participants_invited: Optional[VideoChatParticipantsInvited] = (
+            None
+        )
+        self.web_app_data: Optional[WebAppData] = None
+        self.message_auto_delete_timer_changed: Optional[
+            MessageAutoDeleteTimerChanged
+        ] = None
 
         for key in options:
             setattr(self, key, options[key])
         self.json = json_string
 
     @property
-    def html_text(self):
+    def html_text(self) -> Optional[str]:
         """
         Returns html-rendered text.
         """
+        if self.text is None:
+            return None
         return apply_html_entities(
             self.text, self.entities, getattr(self, "custom_subs", None)
         )
 
     @property
-    def html_caption(self):
+    def html_caption(self) -> Optional[str]:
         """
         Returns html-rendered caption.
         """
+        if self.caption is None:
+            return None
         return apply_html_entities(
             self.caption, self.caption_entities, getattr(self, "custom_subs", None)
         )
@@ -1572,7 +1764,6 @@ class Message(JsonDeserializable):
         logger.warning(
             'The parameter "voice_chat_scheduled" is deprecated, use "video_chat_scheduled" instead'
         )
-        # noinspection PyUnresolvedReferences
         return self.video_chat_scheduled
 
     @property
@@ -1580,7 +1771,6 @@ class Message(JsonDeserializable):
         logger.warning(
             'The parameter "voice_chat_started" is deprecated, use "video_chat_started" instead'
         )
-        # noinspection PyUnresolvedReferences
         return self.video_chat_started
 
     @property
@@ -1588,7 +1778,6 @@ class Message(JsonDeserializable):
         logger.warning(
             'The parameter "voice_chat_ended" is deprecated, use "video_chat_ended" instead'
         )
-        # noinspection PyUnresolvedReferences
         return self.video_chat_ended
 
     @property
@@ -1596,7 +1785,6 @@ class Message(JsonDeserializable):
         logger.warning(
             'The parameter "voice_chat_participants_invited" is deprecated, use "video_chat_participants_invited" instead'
         )
-        # noinspection PyUnresolvedReferences
         return self.video_chat_participants_invited
 
     @property
@@ -1679,6 +1867,18 @@ class Message(JsonDeserializable):
         )
         return self.users_shared
 
+    @property
+    def any_text(self) -> Optional[str]:
+        return self.caption if (self.caption is not None) else self.text
+
+    @property
+    def any_entities(self) -> Optional[List[MessageEntity]]:
+        return (
+            self.caption_entities
+            if (self.caption_entities is not None)
+            else self.entities
+        )
+
 
 # noinspection PyShadowingBuiltins
 class MessageEntity(Dictionaryable, JsonSerializable, JsonDeserializable):
@@ -1756,19 +1956,21 @@ class MessageEntity(Dictionaryable, JsonSerializable, JsonDeserializable):
         self.url: str = url
         self.user: User = user
         self.language: str = language
-        self.custom_emoji_id: str = custom_emoji_id
+        self.custom_emoji_id: Optional[str] = custom_emoji_id
 
     def to_json(self):
         return json.dumps(self.to_dict())
 
     def to_dict(self):
-        return {"type": self.type,
-                "offset": self.offset,
-                "length": self.length,
-                "url": self.url,
-                "user": self.user.to_dict() if self.user else None,
-                "language": self.language,
-                "custom_emoji_id": self.custom_emoji_id}
+        return {
+            "type": self.type,
+            "offset": self.offset,
+            "length": self.length,
+            "url": self.url,
+            "user": self.user.to_dict() if self.user else None,
+            "language": self.language,
+            "custom_emoji_id": self.custom_emoji_id,
+        }
 
 
 class Dice(JsonSerializable, Dictionaryable, JsonDeserializable):
@@ -1845,7 +2047,7 @@ class PhotoSize(JsonDeserializable):
         self.file_unique_id: str = file_unique_id
         self.width: int = width
         self.height: int = height
-        self.file_size: int = file_size
+        self.file_size: Optional[int] = file_size
 
 
 class Audio(JsonDeserializable):
@@ -1915,15 +2117,15 @@ class Audio(JsonDeserializable):
         self.file_id: str = file_id
         self.file_unique_id: str = file_unique_id
         self.duration: int = duration
-        self.performer: str = performer
-        self.title: str = title
-        self.file_name: str = file_name
-        self.mime_type: str = mime_type
-        self.file_size: int = file_size
-        self.thumbnail: PhotoSize = thumbnail
+        self.performer: Optional[str] = performer
+        self.title: Optional[str] = title
+        self.file_name: Optional[str] = file_name
+        self.mime_type: Optional[str] = mime_type
+        self.file_size: Optional[int] = file_size
+        self.thumbnail: Optional[PhotoSize] = thumbnail
 
     @property
-    def thumb(self):
+    def thumb(self) -> Optional[PhotoSize]:
         logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
@@ -1975,8 +2177,8 @@ class Voice(JsonDeserializable):
         self.file_id: str = file_id
         self.file_unique_id: str = file_unique_id
         self.duration: int = duration
-        self.mime_type: str = mime_type
-        self.file_size: int = file_size
+        self.mime_type: Optional[str] = mime_type
+        self.file_size: Optional[int] = file_size
 
 
 class Document(JsonDeserializable):
@@ -2033,13 +2235,13 @@ class Document(JsonDeserializable):
     ):
         self.file_id: str = file_id
         self.file_unique_id: str = file_unique_id
-        self.thumbnail: PhotoSize = thumbnail
-        self.file_name: str = file_name
-        self.mime_type: str = mime_type
-        self.file_size: int = file_size
+        self.thumbnail: Optional[PhotoSize] = thumbnail
+        self.file_name: Optional[str] = file_name
+        self.mime_type: Optional[str] = mime_type
+        self.file_size: Optional[int] = file_size
 
     @property
-    def thumb(self):
+    def thumb(self) -> Optional[PhotoSize]:
         logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
@@ -2112,12 +2314,12 @@ class Video(JsonDeserializable):
         self.height: int = height
         self.duration: int = duration
         self.thumbnail: PhotoSize = thumbnail
-        self.file_name: str = file_name
-        self.mime_type: str = mime_type
-        self.file_size: int = file_size
+        self.file_name: Optional[str] = file_name
+        self.mime_type: Optional[str] = mime_type
+        self.file_size: Optional[int] = file_size
 
     @property
-    def thumb(self):
+    def thumb(self) -> Optional[PhotoSize]:
         logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
@@ -2174,11 +2376,11 @@ class VideoNote(JsonDeserializable):
         self.file_unique_id: str = file_unique_id
         self.length: int = length
         self.duration: int = duration
-        self.thumbnail: PhotoSize = thumbnail
-        self.file_size: int = file_size
+        self.thumbnail: Optional[PhotoSize] = thumbnail
+        self.file_size: Optional[int] = file_size
 
     @property
-    def thumb(self):
+    def thumb(self) -> Optional[PhotoSize]:
         logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
@@ -2228,9 +2430,9 @@ class Contact(JsonDeserializable):
     ):
         self.phone_number: str = phone_number
         self.first_name: str = first_name
-        self.last_name: str = last_name
-        self.user_id: int = user_id
-        self.vcard: str = vcard
+        self.last_name: Optional[str] = last_name
+        self.user_id: Optional[int] = user_id
+        self.vcard: Optional[str] = vcard
 
 
 class Location(JsonDeserializable, JsonSerializable, Dictionaryable):
@@ -2282,10 +2484,10 @@ class Location(JsonDeserializable, JsonSerializable, Dictionaryable):
     ):
         self.longitude: float = longitude
         self.latitude: float = latitude
-        self.horizontal_accuracy: float = horizontal_accuracy
-        self.live_period: int = live_period
-        self.heading: int = heading
-        self.proximity_alert_radius: int = proximity_alert_radius
+        self.horizontal_accuracy: Optional[float] = horizontal_accuracy
+        self.live_period: Optional[int] = live_period
+        self.heading: Optional[int] = heading
+        self.proximity_alert_radius: Optional[int] = proximity_alert_radius
 
     def to_json(self):
         return json.dumps(self.to_dict())
@@ -2355,10 +2557,10 @@ class Venue(JsonDeserializable):
         self.location: Location = location
         self.title: str = title
         self.address: str = address
-        self.foursquare_id: str = foursquare_id
-        self.foursquare_type: str = foursquare_type
-        self.google_place_id: str = google_place_id
-        self.google_place_type: str = google_place_type
+        self.foursquare_id: Optional[str] = foursquare_id
+        self.foursquare_type: Optional[str] = foursquare_type
+        self.google_place_id: Optional[str] = google_place_id
+        self.google_place_type: Optional[str] = google_place_type
 
 
 class UserProfilePhotos(JsonDeserializable):
@@ -2430,8 +2632,8 @@ class File(JsonDeserializable):
     ):
         self.file_id: str = file_id
         self.file_unique_id: str = file_unique_id
-        self.file_size: int = file_size
-        self.file_path: str = file_path
+        self.file_size: Optional[int] = file_size
+        self.file_path: Optional[str] = file_path
 
 
 # noinspection PyUnresolvedReferences
@@ -2463,8 +2665,8 @@ class ForceReply(JsonSerializable):
         selective: Optional[bool] = None,
         input_field_placeholder: Optional[str] = None,
     ):
-        self.selective: bool = selective
-        self.input_field_placeholder: str = input_field_placeholder
+        self.selective: Optional[bool] = selective
+        self.input_field_placeholder: Optional[str] = input_field_placeholder
 
     def to_json(self):
         json_dict = {"force_reply": True}
@@ -2499,8 +2701,8 @@ class ReplyKeyboardRemove(JsonSerializable):
     :rtype: :class:`telebot.types.ReplyKeyboardRemove`
     """
 
-    def __init__(self, selective=None):
-        self.selective: bool = selective
+    def __init__(self, selective: Optional[bool] = None):
+        self.selective: Optional[bool] = selective
 
     def to_json(self):
         json_dict = {"remove_keyboard": True}
@@ -2612,15 +2814,15 @@ class ReplyKeyboardMarkup(JsonSerializable):
                 )
             row_width = self.max_row_keys
 
-        self.resize_keyboard: bool = resize_keyboard
-        self.one_time_keyboard: bool = one_time_keyboard
-        self.selective: bool = selective
-        self.row_width: int = row_width
-        self.input_field_placeholder: str = input_field_placeholder
+        self.resize_keyboard: Optional[bool] = resize_keyboard
+        self.one_time_keyboard: Optional[bool] = one_time_keyboard
+        self.selective: Optional[bool] = selective
+        self.row_width: Optional[int] = row_width
+        self.input_field_placeholder: Optional[str] = input_field_placeholder
         self.keyboard: List[List[KeyboardButton]] = []
-        self.is_persistent: bool = is_persistent
+        self.is_persistent: Optional[bool] = is_persistent
 
-    def add(self, *args, row_width=None):
+    def add(self, *args, row_width=None) -> "ReplyKeyboardMarkup":
         """
         This function adds strings to the keyboard, while not exceeding row_width.
         E.g. ReplyKeyboardMarkup#add("A", "B", "C") yields the json result {keyboard: [["A"], ["B"], ["C"]]}
@@ -2662,7 +2864,7 @@ class ReplyKeyboardMarkup(JsonSerializable):
 
         return self
 
-    def row(self, *args):
+    def row(self, *args) -> "ReplyKeyboardMarkup":
         """
         Adds a list of KeyboardButton to the keyboard. This function does not consider row_width.
         ReplyKeyboardMarkup#row("A")#row("B", "C")#to_json() outputs '{keyboard: [["A"], ["B", "C"]]}'
@@ -2705,6 +2907,7 @@ class KeyboardButtonPollType(Dictionaryable):
     :return: Instance of the class
     :rtype: :class:`telebot.types.KeyboardButtonPollType`
     """
+
     def __init__(self, type=None):
         self.type: str = type
 
@@ -2753,7 +2956,7 @@ class KeyboardButtonRequestUsers(Dictionaryable):
         user_is_bot: Optional[bool] = None,
         user_is_premium: Optional[bool] = None,
         max_quantity: Optional[int] = None,
-        request_name: Optional[str] = None,
+        request_name: Optional[bool] = None,
         request_username: Optional[bool] = None,
         request_photo: Optional[bool] = None,
     ) -> None:
@@ -2761,7 +2964,7 @@ class KeyboardButtonRequestUsers(Dictionaryable):
         self.user_is_bot: Optional[bool] = user_is_bot
         self.user_is_premium: Optional[bool] = user_is_premium
         self.max_quantity: Optional[int] = max_quantity
-        self.request_name: Optional[str] = request_name
+        self.request_name: Optional[bool] = request_name
         self.request_username: Optional[bool] = request_username
         self.request_photo: Optional[bool] = request_photo
 
@@ -2958,17 +3161,18 @@ class KeyboardButton(Dictionaryable, JsonSerializable):
         request_users: Optional[KeyboardButtonRequestUsers] = None,
     ):
         self.text: str = text
-        self.request_contact: bool = request_contact
-        self.request_location: bool = request_location
-        self.request_poll: KeyboardButtonPollType = request_poll
-        self.web_app: WebAppInfo = web_app
-        self.request_chat: KeyboardButtonRequestChat = request_chat
-        self.request_users: KeyboardButtonRequestUsers = request_users
+        self.request_contact: Optional[bool] = request_contact
+        self.request_location: Optional[bool] = request_location
+        self.request_poll: Optional[KeyboardButtonPollType] = request_poll
+        self.web_app: Optional[WebAppInfo] = web_app
+        self.request_chat: Optional[KeyboardButtonRequestChat] = request_chat
+        self.request_users: Optional[KeyboardButtonRequestUsers] = request_users
         if request_user is not None:
             logger.warning(
                 'The parameter "request_user" is deprecated, use "request_users" instead'
             )
             if self.request_users is None:
+                # noinspection PyTypeChecker
                 self.request_users = request_user
 
     def to_json(self):
@@ -3049,7 +3253,7 @@ class InlineKeyboardMarkup(Dictionaryable, JsonSerializable, JsonDeserializable)
         self.row_width: int = row_width
         self.keyboard: List[List[InlineKeyboardButton]] = keyboard or []
 
-    def add(self, *args, row_width=None):
+    def add(self, *args, row_width=None) -> "InlineKeyboardMarkup":
         """
         This method adds buttons to the keyboard without exceeding row_width.
 
@@ -3086,7 +3290,7 @@ class InlineKeyboardMarkup(Dictionaryable, JsonSerializable, JsonDeserializable)
 
         return self
 
-    def row(self, *args):
+    def row(self, *args) -> "InlineKeyboardMarkup":
         """
         Adds a list of InlineKeyboardButton to the keyboard.
         This method does not consider row_width.
@@ -3189,30 +3393,32 @@ class InlineKeyboardButton(Dictionaryable, JsonSerializable, JsonDeserializable)
 
     def __init__(
         self,
-        text,
-        url=None,
-        callback_data=None,
-        web_app=None,
-        switch_inline_query=None,
-        switch_inline_query_current_chat=None,
-        switch_inline_query_chosen_chat=None,
+        text: str,
+        url: Optional[str] = None,
+        callback_data: Optional[str] = None,
+        web_app: Optional[WebAppInfo] = None,
+        switch_inline_query: Optional[str] = None,
+        switch_inline_query_current_chat: Optional[str] = None,
+        switch_inline_query_chosen_chat: Optional[SwitchInlineQueryChosenChat] = None,
         callback_game=None,
-        pay=None,
-        login_url=None,
+        pay: Optional[bool] = None,
+        login_url: Optional[LoginUrl] = None,
         **kwargs,
     ):
         self.text: str = text
-        self.url: str = url
-        self.callback_data: str = callback_data
-        self.web_app: WebAppInfo = web_app
-        self.switch_inline_query: str = switch_inline_query
-        self.switch_inline_query_current_chat: str = switch_inline_query_current_chat
-        self.switch_inline_query_chosen_chat: SwitchInlineQueryChosenChat = (
+        self.url: Optional[str] = url
+        self.callback_data: Optional[str] = callback_data
+        self.web_app: Optional[WebAppInfo] = web_app
+        self.switch_inline_query: Optional[str] = switch_inline_query
+        self.switch_inline_query_current_chat: Optional[str] = (
+            switch_inline_query_current_chat
+        )
+        self.switch_inline_query_chosen_chat: Optional[SwitchInlineQueryChosenChat] = (
             switch_inline_query_chosen_chat
         )
         self.callback_game = callback_game  # Not Implemented
-        self.pay: bool = pay
-        self.login_url: LoginUrl = login_url
+        self.pay: Optional[bool] = pay
+        self.login_url: Optional[LoginUrl] = login_url
 
     def to_json(self):
         return json.dumps(self.to_dict())
@@ -3282,16 +3488,16 @@ class LoginUrl(Dictionaryable, JsonSerializable, JsonDeserializable):
 
     def __init__(
         self,
-        url,
-        forward_text=None,
-        bot_username=None,
-        request_write_access=None,
+        url: str,
+        forward_text: Optional[str] = None,
+        bot_username: Optional[str] = None,
+        request_write_access: Optional[bool] = None,
         **kwargs,
     ):
         self.url: str = url
-        self.forward_text: str = forward_text
-        self.bot_username: str = bot_username
-        self.request_write_access: bool = request_write_access
+        self.forward_text: Optional[str] = forward_text
+        self.bot_username: Optional[str] = bot_username
+        self.request_write_access: Optional[bool] = request_write_access
 
     def to_json(self):
         return json.dumps(self.to_dict())
@@ -3376,10 +3582,10 @@ class CallbackQuery(JsonDeserializable):
         self.id: int = id
         self.from_user: User = from_user
         self.message: Union[Message, InaccessibleMessage] = message
-        self.inline_message_id: str = inline_message_id
-        self.chat_instance: str = chat_instance
-        self.data: str = data
-        self.game_short_name: str = game_short_name
+        self.inline_message_id: Optional[str] = inline_message_id
+        self.chat_instance: Optional[str] = chat_instance
+        self.data: Optional[str] = data
+        self.game_short_name: Optional[str] = game_short_name
         self.json = json_string
 
 
@@ -3867,20 +4073,20 @@ class ChatPermissions(JsonDeserializable, JsonSerializable, Dictionaryable):
         can_manage_topics=None,
         **kwargs,
     ):
-        self.can_send_messages: bool = can_send_messages
-        self.can_send_polls: bool = can_send_polls
-        self.can_send_other_messages: bool = can_send_other_messages
-        self.can_add_web_page_previews: bool = can_add_web_page_previews
-        self.can_change_info: bool = can_change_info
-        self.can_invite_users: bool = can_invite_users
-        self.can_pin_messages: bool = can_pin_messages
-        self.can_manage_topics: bool = can_manage_topics
-        self.can_send_audios: bool = can_send_audios
-        self.can_send_documents: bool = can_send_documents
-        self.can_send_photos: bool = can_send_photos
-        self.can_send_videos: bool = can_send_videos
-        self.can_send_video_notes: bool = can_send_video_notes
-        self.can_send_voice_notes: bool = can_send_voice_notes
+        self.can_send_messages: Optional[bool] = can_send_messages
+        self.can_send_polls: Optional[bool] = can_send_polls
+        self.can_send_other_messages: Optional[bool] = can_send_other_messages
+        self.can_add_web_page_previews: Optional[bool] = can_add_web_page_previews
+        self.can_change_info: Optional[bool] = can_change_info
+        self.can_invite_users: Optional[bool] = can_invite_users
+        self.can_pin_messages: Optional[bool] = can_pin_messages
+        self.can_manage_topics: Optional[bool] = can_manage_topics
+        self.can_send_audios: Optional[bool] = can_send_audios
+        self.can_send_documents: Optional[bool] = can_send_documents
+        self.can_send_photos: Optional[bool] = can_send_photos
+        self.can_send_videos: Optional[bool] = can_send_videos
+        self.can_send_video_notes: Optional[bool] = can_send_video_notes
+        self.can_send_voice_notes: Optional[bool] = can_send_voice_notes
 
         if kwargs.get("de_json", False) and can_send_media_messages is not None:
             # Telegram passes can_send_media_messages in Chat.permissions. Temporary created parameter "de_json" allows avoid
@@ -3888,12 +4094,12 @@ class ChatPermissions(JsonDeserializable, JsonSerializable, Dictionaryable):
             logger.warning(
                 'The parameter "can_send_media_messages" is deprecated. Use individual parameters like "can_send_audios", "can_send_documents" etc.'
             )
-            self.can_send_audios = can_send_media_messages
-            self.can_send_documents = can_send_media_messages
-            self.can_send_photos = can_send_media_messages
-            self.can_send_videos = can_send_media_messages
-            self.can_send_video_notes = can_send_media_messages
-            self.can_send_voice_notes = can_send_media_messages
+            self.can_send_audios: Optional[bool] = can_send_media_messages
+            self.can_send_documents: Optional[bool] = can_send_media_messages
+            self.can_send_photos: Optional[bool] = can_send_media_messages
+            self.can_send_videos: Optional[bool] = can_send_media_messages
+            self.can_send_video_notes: Optional[bool] = can_send_media_messages
+            self.can_send_voice_notes: Optional[bool] = can_send_media_messages
 
     def to_json(self):
         return json.dumps(self.to_dict())
@@ -3969,6 +4175,7 @@ class BotCommand(JsonSerializable, JsonDeserializable, Dictionaryable):
 
 
 # BotCommandScopes
+
 
 # noinspection PyShadowingBuiltins
 class BotCommandScope(ABC, JsonSerializable):
@@ -4133,7 +4340,7 @@ class BotCommandScopeChat(BotCommandScope):
     :rtype: :class:`telebot.types.BotCommandScopeChat`
     """
 
-    def __init__(self, chat_id=None):
+    def __init__(self, chat_id: Optional[Union[str, int]] = None):
         super(BotCommandScopeChat, self).__init__(type="chat", chat_id=chat_id)
 
 
@@ -4155,7 +4362,7 @@ class BotCommandScopeChatAdministrators(BotCommandScope):
     :rtype: :class:`telebot.types.BotCommandScopeChatAdministrators`
     """
 
-    def __init__(self, chat_id=None):
+    def __init__(self, chat_id: Optional[Union[str, int]] = None):
         super(BotCommandScopeChatAdministrators, self).__init__(
             type="chat_administrators", chat_id=chat_id
         )
@@ -4182,13 +4389,18 @@ class BotCommandScopeChatMember(BotCommandScope):
     :rtype: :class:`telebot.types.BotCommandScopeChatMember`
     """
 
-    def __init__(self, chat_id=None, user_id=None):
+    def __init__(
+        self,
+        chat_id: Optional[Union[str, int]] = None,
+        user_id: Optional[Union[str, int]] = None,
+    ):
         super(BotCommandScopeChatMember, self).__init__(
             type="chat_member", chat_id=chat_id, user_id=user_id
         )
 
 
 # InlineQuery
+
 
 # noinspection PyShadowingBuiltins
 class InlineQuery(JsonDeserializable):
@@ -4239,8 +4451,8 @@ class InlineQuery(JsonDeserializable):
         self.from_user: User = from_user
         self.query: str = query
         self.offset: str = offset
-        self.chat_type: str = chat_type
-        self.location: Location = location
+        self.chat_type: Optional[str] = chat_type
+        self.location: Optional[Location] = location
 
 
 class InputTextMessageContent(Dictionaryable):
@@ -4272,16 +4484,16 @@ class InputTextMessageContent(Dictionaryable):
 
     def __init__(
         self,
-        message_text,
-        parse_mode=None,
-        entities=None,
-        disable_web_page_preview=None,
-        link_preview_options=None,
+        message_text: str,
+        parse_mode: Optional[str] = None,
+        entities: Optional[List[MessageEntity]] = None,
+        disable_web_page_preview: Optional[bool] = None,
+        link_preview_options: Optional[LinkPreviewOptions] = None,
     ):
         self.message_text: str = message_text
-        self.parse_mode: str = parse_mode
-        self.entities: List[MessageEntity] = entities
-        self.link_preview_options: LinkPreviewOptions = link_preview_options
+        self.parse_mode: Optional[str] = parse_mode
+        self.entities: Optional[List[MessageEntity]] = entities
+        self.link_preview_options: Optional[LinkPreviewOptions] = link_preview_options
         if disable_web_page_preview is not None:
             logger.warning(
                 'The parameter "disable_web_page_preview" is deprecated. Use "link_preview_options" instead.'
@@ -4292,8 +4504,8 @@ class InputTextMessageContent(Dictionaryable):
                     'Both "link_preview_options" and "disable_web_page_preview" parameters are set: conflicting, "disable_web_page_preview" is deprecated'
                 )
             else:
-                self.link_preview_options: LinkPreviewOptions = LinkPreviewOptions(
-                    is_disabled=disable_web_page_preview
+                self.link_preview_options: Optional[LinkPreviewOptions] = (
+                    LinkPreviewOptions(is_disabled=disable_web_page_preview)
                 )
 
     def to_dict(self):
@@ -4346,10 +4558,10 @@ class InputLocationMessageContent(Dictionaryable):
     ):
         self.latitude: float = latitude
         self.longitude: float = longitude
-        self.horizontal_accuracy: float = horizontal_accuracy
-        self.live_period: int = live_period
-        self.heading: int = heading
-        self.proximity_alert_radius: int = proximity_alert_radius
+        self.horizontal_accuracy: Optional[float] = horizontal_accuracy
+        self.live_period: Optional[int] = live_period
+        self.heading: Optional[int] = heading
+        self.proximity_alert_radius: Optional[int] = proximity_alert_radius
 
     def to_dict(self):
         json_dict = {"latitude": self.latitude, "longitude": self.longitude}
@@ -4414,10 +4626,10 @@ class InputVenueMessageContent(Dictionaryable):
         self.longitude: float = longitude
         self.title: str = title
         self.address: str = address
-        self.foursquare_id: str = foursquare_id
-        self.foursquare_type: str = foursquare_type
-        self.google_place_id: str = google_place_id
-        self.google_place_type: str = google_place_type
+        self.foursquare_id: Optional[str] = foursquare_id
+        self.foursquare_type: Optional[str] = foursquare_type
+        self.google_place_id: Optional[str] = google_place_id
+        self.google_place_type: Optional[str] = google_place_type
 
     def to_dict(self):
         json_dict = {
@@ -4462,8 +4674,8 @@ class InputContactMessageContent(Dictionaryable):
     def __init__(self, phone_number, first_name, last_name=None, vcard=None):
         self.phone_number: str = phone_number
         self.first_name: str = first_name
-        self.last_name: str = last_name
-        self.vcard: str = vcard
+        self.last_name: Optional[str] = last_name
+        self.vcard: Optional[str] = vcard
 
     def to_dict(self):
         json_dict = {"phone_number": self.phone_number, "first_name": self.first_name}
@@ -4490,8 +4702,9 @@ class InputInvoiceMessageContent(Dictionaryable):
         internal processes.
     :type payload: :obj:`str`
 
-    :param provider_token: Payment provider token, obtained via @BotFather
-    :type provider_token: :obj:`str`
+    :param provider_token: Payment provider token, obtained via @BotFather; To create invoice in stars,
+        provide an empty token.
+    :type provider_token: :obj:`str` or :obj:`None`
 
     :param currency: Three-letter ISO 4217 currency code, see more on currencies
     :type currency: :obj:`str`
@@ -4556,31 +4769,31 @@ class InputInvoiceMessageContent(Dictionaryable):
 
     def __init__(
         self,
-        title,
-        description,
-        payload,
-        provider_token,
-        currency,
-        prices,
-        max_tip_amount=None,
-        suggested_tip_amounts=None,
-        provider_data=None,
-        photo_url=None,
-        photo_size=None,
-        photo_width=None,
-        photo_height=None,
-        need_name=None,
-        need_phone_number=None,
-        need_email=None,
-        need_shipping_address=None,
-        send_phone_number_to_provider=None,
-        send_email_to_provider=None,
-        is_flexible=None,
+        title: str,
+        description: str,
+        payload: str,
+        provider_token: Optional[str],
+        currency: str,
+        prices: List[LabeledPrice],
+        max_tip_amount: Optional[int] = None,
+        suggested_tip_amounts: Optional[List[int]] = None,
+        provider_data: Optional[str] = None,
+        photo_url: Optional[str] = None,
+        photo_size: Optional[int] = None,
+        photo_width: Optional[int] = None,
+        photo_height: Optional[int] = None,
+        need_name: Optional[bool] = None,
+        need_phone_number: Optional[bool] = None,
+        need_email: Optional[bool] = None,
+        need_shipping_address: Optional[bool] = None,
+        send_phone_number_to_provider: Optional[bool] = None,
+        send_email_to_provider: Optional[bool] = None,
+        is_flexible: Optional[bool] = None,
     ):
         self.title: str = title
         self.description: str = description
         self.payload: str = payload
-        self.provider_token: str = provider_token
+        self.provider_token: Optional[str] = provider_token
         self.currency: str = currency
         self.prices: List[LabeledPrice] = prices
         self.max_tip_amount: Optional[int] = max_tip_amount
@@ -4642,6 +4855,15 @@ class InputInvoiceMessageContent(Dictionaryable):
         return json_dict
 
 
+InputMessageContent = Union[
+    InputTextMessageContent,
+    InputLocationMessageContent,
+    InputVenueMessageContent,
+    InputContactMessageContent,
+    InputInvoiceMessageContent,
+]
+
+
 class ChosenInlineResult(JsonDeserializable):
     """
     Represents a result of an inline query that was chosen by the user and sent to their chat partner.
@@ -4689,11 +4911,12 @@ class ChosenInlineResult(JsonDeserializable):
     ):
         self.result_id: str = result_id
         self.from_user: User = from_user
-        self.location: Location = location
-        self.inline_message_id: str = inline_message_id
+        self.location: Optional[Location] = location
+        self.inline_message_id: Optional[str] = inline_message_id
         self.query: str = query
 
 
+# noinspection PyShadowingBuiltins
 class InlineQueryResultBase(ABC, Dictionaryable, JsonSerializable):
     """
     This object represents one result of an inline query. Telegram clients currently support results of the following 20 types:
@@ -4722,26 +4945,27 @@ class InlineQueryResultBase(ABC, Dictionaryable, JsonSerializable):
     Telegram Documentation: https://core.telegram.org/bots/api#inlinequeryresult
     """
 
-    # noinspection PyShadowingBuiltins
     def __init__(
         self,
-        type,
-        id,
-        title=None,
-        caption=None,
-        input_message_content=None,
-        reply_markup=None,
-        caption_entities=None,
-        parse_mode=None,
+        type: str,
+        id: str,
+        title: Optional[str] = None,
+        caption: Optional[str] = None,
+        input_message_content: Optional[InputMessageContent] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        parse_mode: Optional[str] = None,
     ):
-        self.type = type
-        self.id = id
-        self.title = title
-        self.caption = caption
-        self.input_message_content = input_message_content
-        self.reply_markup = reply_markup
-        self.caption_entities = caption_entities
-        self.parse_mode = parse_mode
+        self.type: str = type
+        self.id: str = id
+        self.title: Optional[str] = title
+        self.caption: Optional[str] = caption
+        self.input_message_content: Optional[InputMessageContent] = (
+            input_message_content
+        )
+        self.reply_markup: Optional[InlineKeyboardMarkup] = reply_markup
+        self.caption_entities: Optional[List[MessageEntity]] = caption_entities
+        self.parse_mode: Optional[str] = parse_mode
 
     def to_json(self):
         return json.dumps(self.to_dict())
@@ -4787,7 +5011,7 @@ class SentWebAppMessage(JsonDeserializable, Dictionaryable):
         return cls(**obj)
 
     def __init__(self, inline_message_id=None, **kwargs):
-        self.inline_message_id = inline_message_id
+        self.inline_message_id: Optional[str] = inline_message_id
 
     def to_dict(self):
         json_dict = {}
@@ -4842,17 +5066,18 @@ class InlineQueryResultArticle(InlineQueryResultBase):
 
     def __init__(
         self,
-        id,
-        title,
-        input_message_content,
-        reply_markup=None,
-        url=None,
-        hide_url=None,
-        description=None,
-        thumbnail_url=None,
-        thumbnail_width=None,
-        thumbnail_height=None,
+        id: str,
+        title: str,
+        input_message_content: InputMessageContent,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        url: Optional[str] = None,
+        hide_url: Optional[bool] = None,
+        description: Optional[str] = None,
+        thumbnail_url: Optional[str] = None,
+        thumbnail_width: Optional[int] = None,
+        thumbnail_height: Optional[int] = None,
     ):
+
         super().__init__(
             "article",
             id,
@@ -4860,29 +5085,29 @@ class InlineQueryResultArticle(InlineQueryResultBase):
             input_message_content=input_message_content,
             reply_markup=reply_markup,
         )
-        self.url = url
-        self.hide_url = hide_url
-        self.description = description
-        self.thumbnail_url = thumbnail_url
-        self.thumbnail_width = thumbnail_width
-        self.thumbnail_height = thumbnail_height
+        self.url: Optional[str] = url
+        self.hide_url: Optional[bool] = hide_url
+        self.description: Optional[str] = description
+        self.thumbnail_url: Optional[str] = thumbnail_url
+        self.thumbnail_width: Optional[int] = thumbnail_width
+        self.thumbnail_height: Optional[int] = thumbnail_height
 
     @property
-    def thumb_url(self):
+    def thumb_url(self) -> str:
         logger.warning(
             'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
         )
         return self.thumbnail_url
 
     @property
-    def thumb_width(self):
+    def thumb_width(self) -> int:
         logger.warning(
             'The parameter "thumb_width" is deprecated, use "thumbnail_width" instead'
         )
         return self.thumbnail_width
 
     @property
-    def thumb_height(self):
+    def thumb_height(self) -> int:
         logger.warning(
             'The parameter "thumb_height" is deprecated, use "thumbnail_height" instead'
         )
@@ -4959,21 +5184,42 @@ class InlineQueryResultPhoto(InlineQueryResultBase):
     :return: Instance of the class
     :rtype: :class:`telebot.types.InlineQueryResultPhoto`
     """
-    def __init__(self, id, photo_url, thumbnail_url, photo_width=None, photo_height=None, title=None,
-                 description=None, caption=None, caption_entities=None, parse_mode=None, reply_markup=None, input_message_content=None,
-                 show_caption_above_media=None):
-        super().__init__('photo', id, title = title, caption = caption,
-                         input_message_content = input_message_content, reply_markup = reply_markup,
-                         parse_mode = parse_mode, caption_entities = caption_entities)
-        self.photo_url = photo_url
-        self.thumbnail_url = thumbnail_url
-        self.photo_width = photo_width
-        self.photo_height = photo_height
-        self.description = description
+
+    def __init__(
+        self,
+        id: str,
+        photo_url: str,
+        thumbnail_url: str,
+        photo_width: Optional[int] = None,
+        photo_height: Optional[int] = None,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+        caption: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        parse_mode: Optional[str] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
+        show_caption_above_media: Optional[bool] = None,
+    ):
+        super().__init__(
+            "photo",
+            id,
+            title=title,
+            caption=caption,
+            input_message_content=input_message_content,
+            reply_markup=reply_markup,
+            parse_mode=parse_mode,
+            caption_entities=caption_entities,
+        )
+        self.photo_url: str = photo_url
+        self.thumbnail_url: str = thumbnail_url
+        self.photo_width: Optional[int] = photo_width
+        self.photo_height: Optional[int] = photo_height
+        self.description: Optional[str] = description
         self.show_caption_above_media: Optional[bool] = show_caption_above_media
 
     @property
-    def thumb_url(self):
+    def thumb_url(self) -> str:
         logger.warning(
             'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
         )
@@ -4988,9 +5234,9 @@ class InlineQueryResultPhoto(InlineQueryResultBase):
         if self.photo_height:
             json_dict["photo_height"] = self.photo_height
         if self.description:
-            json_dict['description'] = self.description
+            json_dict["description"] = self.description
         if self.show_caption_above_media is not None:
-            json_dict['show_caption_above_media'] = self.show_caption_above_media
+            json_dict["show_caption_above_media"] = self.show_caption_above_media
         return json_dict
 
 
@@ -5051,30 +5297,52 @@ class InlineQueryResultGif(InlineQueryResultBase):
     :return: Instance of the class
     :rtype: :class:`telebot.types.InlineQueryResultGif`
     """
-    def __init__(self, id, gif_url, thumbnail_url, gif_width=None, gif_height=None,
-                 title=None, caption=None, caption_entities=None,
-                 reply_markup=None, input_message_content=None, gif_duration=None, parse_mode=None,
-                 thumbnail_mime_type=None, show_caption_above_media=None):
-        super().__init__('gif', id, title = title, caption = caption,
-                         input_message_content = input_message_content, reply_markup = reply_markup,
-                         parse_mode = parse_mode, caption_entities = caption_entities)
-        self.gif_url = gif_url
-        self.gif_width = gif_width
-        self.gif_height = gif_height
-        self.thumbnail_url = thumbnail_url
-        self.gif_duration = gif_duration
-        self.thumbnail_mime_type = thumbnail_mime_type
+
+    def __init__(
+        self,
+        id: str,
+        gif_url: str,
+        thumbnail_url: str,
+        gif_width: Optional[int] = None,
+        gif_height: Optional[int] = None,
+        title: Optional[str] = None,
+        caption: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
+        gif_duration: Optional[int] = None,
+        parse_mode: Optional[str] = None,
+        thumbnail_mime_type: Optional[str] = None,
+        show_caption_above_media: Optional[bool] = None,
+    ):
+
+        super().__init__(
+            "gif",
+            id,
+            title=title,
+            caption=caption,
+            input_message_content=input_message_content,
+            reply_markup=reply_markup,
+            parse_mode=parse_mode,
+            caption_entities=caption_entities,
+        )
+        self.gif_url: str = gif_url
+        self.thumbnail_url: str = thumbnail_url
+        self.gif_width: Optional[int] = gif_width
+        self.gif_height: Optional[int] = gif_height
+        self.gif_duration: Optional[int] = gif_duration
+        self.thumbnail_mime_type: Optional[str] = thumbnail_mime_type
         self.show_caption_above_media: Optional[bool] = show_caption_above_media
 
     @property
-    def thumb_url(self):
+    def thumb_url(self) -> str:
         logger.warning(
             'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
         )
         return self.thumbnail_url
 
     @property
-    def thumb_mime_type(self):
+    def thumb_mime_type(self) -> str:
         logger.warning(
             'The parameter "thumb_mime_type" is deprecated, use "thumbnail_mime_type" instead'
         )
@@ -5091,9 +5359,9 @@ class InlineQueryResultGif(InlineQueryResultBase):
         if self.gif_duration:
             json_dict["gif_duration"] = self.gif_duration
         if self.thumbnail_mime_type:
-            json_dict['thumbnail_mime_type'] = self.thumbnail_mime_type
+            json_dict["thumbnail_mime_type"] = self.thumbnail_mime_type
         if self.show_caption_above_media is not None:
-            json_dict['show_caption_above_media'] = self.show_caption_above_media
+            json_dict["show_caption_above_media"] = self.show_caption_above_media
         return json_dict
 
 
@@ -5154,30 +5422,52 @@ class InlineQueryResultMpeg4Gif(InlineQueryResultBase):
     :return: Instance of the class
     :rtype: :class:`telebot.types.InlineQueryResultMpeg4Gif`
     """
-    def __init__(self, id, mpeg4_url, thumbnail_url, mpeg4_width=None, mpeg4_height=None,
-                 title=None, caption=None, caption_entities=None,
-                 parse_mode=None, reply_markup=None, input_message_content=None, mpeg4_duration=None,
-                 thumbnail_mime_type=None, show_caption_above_media=None):
-        super().__init__('mpeg4_gif', id, title = title, caption = caption,
-                         input_message_content = input_message_content, reply_markup = reply_markup,
-                         parse_mode = parse_mode, caption_entities = caption_entities)
-        self.mpeg4_url = mpeg4_url
-        self.mpeg4_width = mpeg4_width
-        self.mpeg4_height = mpeg4_height
-        self.thumbnail_url = thumbnail_url
-        self.mpeg4_duration = mpeg4_duration
-        self.thumbnail_mime_type = thumbnail_mime_type
+
+    def __init__(
+        self,
+        id: str,
+        mpeg4_url: str,
+        thumbnail_url: str,
+        mpeg4_width: Optional[int] = None,
+        mpeg4_height: Optional[int] = None,
+        title: Optional[str] = None,
+        caption: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        parse_mode: Optional[str] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
+        mpeg4_duration: Optional[int] = None,
+        thumbnail_mime_type: Optional[str] = None,
+        show_caption_above_media: Optional[bool] = None,
+    ):
+
+        super().__init__(
+            "mpeg4_gif",
+            id,
+            title=title,
+            caption=caption,
+            input_message_content=input_message_content,
+            reply_markup=reply_markup,
+            parse_mode=parse_mode,
+            caption_entities=caption_entities,
+        )
+        self.mpeg4_url: str = mpeg4_url
+        self.thumbnail_url: str = thumbnail_url
+        self.mpeg4_width: Optional[int] = mpeg4_width
+        self.mpeg4_height: Optional[int] = mpeg4_height
+        self.mpeg4_duration: Optional[int] = mpeg4_duration
+        self.thumbnail_mime_type: Optional[str] = thumbnail_mime_type
         self.show_caption_above_media: Optional[bool] = show_caption_above_media
 
     @property
-    def thumb_url(self):
+    def thumb_url(self) -> str:
         logger.warning(
             'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
         )
         return self.thumbnail_url
 
     @property
-    def thumb_mime_type(self):
+    def thumb_mime_type(self) -> str:
         logger.warning(
             'The parameter "thumb_mime_type" is deprecated, use "thumbnail_mime_type" instead'
         )
@@ -5194,9 +5484,9 @@ class InlineQueryResultMpeg4Gif(InlineQueryResultBase):
         if self.mpeg4_duration:
             json_dict["mpeg4_duration "] = self.mpeg4_duration
         if self.thumbnail_mime_type:
-            json_dict['thumbnail_mime_type'] = self.thumbnail_mime_type
+            json_dict["thumbnail_mime_type"] = self.thumbnail_mime_type
         if self.show_caption_above_media is not None:
-            json_dict['show_caption_above_media'] = self.show_caption_above_media
+            json_dict["show_caption_above_media"] = self.show_caption_above_media
         return json_dict
 
 
@@ -5261,24 +5551,47 @@ class InlineQueryResultVideo(InlineQueryResultBase):
     :return: Instance of the class
     :rtype: :class:`telebot.types.InlineQueryResultVideo`
     """
-    def __init__(self, id, video_url, mime_type, thumbnail_url,
-                 title, caption=None, caption_entities=None, parse_mode=None,
-                 video_width=None, video_height=None, video_duration=None,
-                 description=None, reply_markup=None, input_message_content=None, show_caption_above_media=None):
-        super().__init__('video', id, title = title, caption = caption,
-                         input_message_content = input_message_content, reply_markup = reply_markup,
-                         parse_mode = parse_mode, caption_entities = caption_entities)
-        self.video_url = video_url
-        self.mime_type = mime_type
-        self.thumbnail_url = thumbnail_url
-        self.video_width = video_width
-        self.video_height = video_height
-        self.video_duration = video_duration
-        self.description = description
+
+    def __init__(
+        self,
+        id: str,
+        video_url: str,
+        mime_type: str,
+        thumbnail_url: str,
+        title: str,
+        caption: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        parse_mode: Optional[str] = None,
+        video_width: Optional[int] = None,
+        video_height: Optional[int] = None,
+        video_duration: Optional[int] = None,
+        description: Optional[str] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
+        show_caption_above_media: Optional[bool] = None,
+    ):
+
+        super().__init__(
+            "video",
+            id,
+            title=title,
+            caption=caption,
+            input_message_content=input_message_content,
+            reply_markup=reply_markup,
+            parse_mode=parse_mode,
+            caption_entities=caption_entities,
+        )
+        self.video_url: str = video_url
+        self.mime_type: str = mime_type
+        self.thumbnail_url: str = thumbnail_url
+        self.video_width: Optional[int] = video_width
+        self.video_height: Optional[int] = video_height
+        self.video_duration: Optional[int] = video_duration
+        self.description: Optional[str] = description
         self.show_caption_above_media: Optional[bool] = show_caption_above_media
 
     @property
-    def thumb_url(self):
+    def thumb_url(self) -> str:
         logger.warning(
             'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
         )
@@ -5294,9 +5607,9 @@ class InlineQueryResultVideo(InlineQueryResultBase):
         if self.video_duration:
             json_dict["video_duration"] = self.video_duration
         if self.description:
-            json_dict['description'] = self.description
+            json_dict["description"] = self.description
         if self.show_caption_above_media is not None:
-            json_dict['show_caption_above_media'] = self.show_caption_above_media
+            json_dict["show_caption_above_media"] = self.show_caption_above_media
         return json_dict
 
 
@@ -5348,17 +5661,18 @@ class InlineQueryResultAudio(InlineQueryResultBase):
 
     def __init__(
         self,
-        id,
-        audio_url,
-        title,
-        caption=None,
-        caption_entities=None,
-        parse_mode=None,
-        performer=None,
-        audio_duration=None,
-        reply_markup=None,
-        input_message_content=None,
+        id: str,
+        audio_url: str,
+        title: str,
+        caption: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        parse_mode: Optional[str] = None,
+        performer: Optional[str] = None,
+        audio_duration: Optional[int] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
     ):
+
         super().__init__(
             "audio",
             id,
@@ -5369,9 +5683,9 @@ class InlineQueryResultAudio(InlineQueryResultBase):
             parse_mode=parse_mode,
             caption_entities=caption_entities,
         )
-        self.audio_url = audio_url
-        self.performer = performer
-        self.audio_duration = audio_duration
+        self.audio_url: str = audio_url
+        self.performer: Optional[str] = performer
+        self.audio_duration: Optional[int] = audio_duration
 
     def to_dict(self):
         json_dict = super().to_dict()
@@ -5428,16 +5742,17 @@ class InlineQueryResultVoice(InlineQueryResultBase):
 
     def __init__(
         self,
-        id,
-        voice_url,
-        title,
-        caption=None,
-        caption_entities=None,
-        parse_mode=None,
-        voice_duration=None,
-        reply_markup=None,
-        input_message_content=None,
+        id: str,
+        voice_url: str,
+        title: str,
+        caption: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        parse_mode: Optional[str] = None,
+        voice_duration: Optional[int] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
     ):
+
         super().__init__(
             "voice",
             id,
@@ -5448,8 +5763,8 @@ class InlineQueryResultVoice(InlineQueryResultBase):
             parse_mode=parse_mode,
             caption_entities=caption_entities,
         )
-        self.voice_url = voice_url
-        self.voice_duration = voice_duration
+        self.voice_url: str = voice_url
+        self.voice_duration: Optional[int] = voice_duration
 
     def to_dict(self):
         json_dict = super().to_dict()
@@ -5516,20 +5831,21 @@ class InlineQueryResultDocument(InlineQueryResultBase):
 
     def __init__(
         self,
-        id,
-        title,
-        document_url,
-        mime_type,
-        caption=None,
-        caption_entities=None,
-        parse_mode=None,
-        description=None,
-        reply_markup=None,
-        input_message_content=None,
-        thumbnail_url=None,
-        thumbnail_width=None,
-        thumbnail_height=None,
+        id: str,
+        title: str,
+        document_url: str,
+        mime_type: str,
+        caption: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        parse_mode: Optional[str] = None,
+        description: Optional[str] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
+        thumbnail_url: Optional[str] = None,
+        thumbnail_width: Optional[int] = None,
+        thumbnail_height: Optional[int] = None,
     ):
+
         super().__init__(
             "document",
             id,
@@ -5540,29 +5856,29 @@ class InlineQueryResultDocument(InlineQueryResultBase):
             parse_mode=parse_mode,
             caption_entities=caption_entities,
         )
-        self.document_url = document_url
-        self.mime_type = mime_type
-        self.description = description
-        self.thumbnail_url = thumbnail_url
-        self.thumbnail_width = thumbnail_width
-        self.thumbnail_height = thumbnail_height
+        self.document_url: str = document_url
+        self.mime_type: str = mime_type
+        self.description: Optional[str] = description
+        self.thumbnail_url: Optional[str] = thumbnail_url
+        self.thumbnail_width: Optional[int] = thumbnail_width
+        self.thumbnail_height: Optional[int] = thumbnail_height
 
     @property
-    def thumb_url(self):
+    def thumb_url(self) -> str:
         logger.warning(
             'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
         )
         return self.thumbnail_url
 
     @property
-    def thumb_width(self):
+    def thumb_width(self) -> int:
         logger.warning(
             'The parameter "thumb_width" is deprecated, use "thumbnail_width" instead'
         )
         return self.thumbnail_width
 
     @property
-    def thumb_height(self):
+    def thumb_height(self) -> int:
         logger.warning(
             'The parameter "thumb_height" is deprecated, use "thumbnail_height" instead'
         )
@@ -5638,20 +5954,21 @@ class InlineQueryResultLocation(InlineQueryResultBase):
 
     def __init__(
         self,
-        id,
-        title,
-        latitude,
-        longitude,
-        horizontal_accuracy,
-        live_period=None,
-        reply_markup=None,
-        input_message_content=None,
-        thumbnail_url=None,
-        thumbnail_width=None,
-        thumbnail_height=None,
-        heading=None,
-        proximity_alert_radius=None,
+        id: str,
+        title: str,
+        latitude: float,
+        longitude: float,
+        horizontal_accuracy: float,
+        live_period: Optional[int] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
+        thumbnail_url: Optional[str] = None,
+        thumbnail_width: Optional[int] = None,
+        thumbnail_height: Optional[int] = None,
+        heading: Optional[int] = None,
+        proximity_alert_radius: Optional[int] = None,
     ):
+
         super().__init__(
             "location",
             id,
@@ -5659,32 +5976,32 @@ class InlineQueryResultLocation(InlineQueryResultBase):
             input_message_content=input_message_content,
             reply_markup=reply_markup,
         )
-        self.latitude = latitude
-        self.longitude = longitude
-        self.horizontal_accuracy = horizontal_accuracy
-        self.live_period = live_period
-        self.heading: int = heading
-        self.proximity_alert_radius: int = proximity_alert_radius
-        self.thumbnail_url = thumbnail_url
-        self.thumbnail_width = thumbnail_width
-        self.thumbnail_height = thumbnail_height
+        self.latitude: float = latitude
+        self.longitude: float = longitude
+        self.horizontal_accuracy: float = horizontal_accuracy
+        self.live_period: Optional[int] = live_period
+        self.heading: Optional[int] = heading
+        self.proximity_alert_radius: Optional[int] = proximity_alert_radius
+        self.thumbnail_url: Optional[str] = thumbnail_url
+        self.thumbnail_width: Optional[int] = thumbnail_width
+        self.thumbnail_height: Optional[int] = thumbnail_height
 
     @property
-    def thumb_url(self):
+    def thumb_url(self) -> str:
         logger.warning(
             'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
         )
         return self.thumbnail_url
 
     @property
-    def thumb_width(self):
+    def thumb_width(self) -> int:
         logger.warning(
             'The parameter "thumb_width" is deprecated, use "thumbnail_width" instead'
         )
         return self.thumbnail_width
 
     @property
-    def thumb_height(self):
+    def thumb_height(self) -> int:
         logger.warning(
             'The parameter "thumb_height" is deprecated, use "thumbnail_height" instead'
         )
@@ -5770,21 +6087,22 @@ class InlineQueryResultVenue(InlineQueryResultBase):
 
     def __init__(
         self,
-        id,
-        title,
-        latitude,
-        longitude,
-        address,
-        foursquare_id=None,
-        foursquare_type=None,
-        reply_markup=None,
-        input_message_content=None,
-        thumbnail_url=None,
-        thumbnail_width=None,
-        thumbnail_height=None,
-        google_place_id=None,
-        google_place_type=None,
+        id: str,
+        title: str,
+        latitude: float,
+        longitude: float,
+        address: str,
+        foursquare_id: Optional[str] = None,
+        foursquare_type: Optional[str] = None,
+        google_place_id: Optional[str] = None,
+        google_place_type: Optional[str] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
+        thumbnail_url: Optional[str] = None,
+        thumbnail_width: Optional[int] = None,
+        thumbnail_height: Optional[int] = None,
     ):
+
         super().__init__(
             "venue",
             id,
@@ -5792,33 +6110,33 @@ class InlineQueryResultVenue(InlineQueryResultBase):
             input_message_content=input_message_content,
             reply_markup=reply_markup,
         )
-        self.latitude = latitude
-        self.longitude = longitude
-        self.address = address
-        self.foursquare_id = foursquare_id
-        self.foursquare_type = foursquare_type
-        self.google_place_id = google_place_id
-        self.google_place_type = google_place_type
-        self.thumbnail_url = thumbnail_url
-        self.thumbnail_width = thumbnail_width
-        self.thumbnail_height = thumbnail_height
+        self.latitude: float = latitude
+        self.longitude: float = longitude
+        self.address: str = address
+        self.foursquare_id: Optional[str] = foursquare_id
+        self.foursquare_type: Optional[str] = foursquare_type
+        self.google_place_id: Optional[str] = google_place_id
+        self.google_place_type: Optional[str] = google_place_type
+        self.thumbnail_url: Optional[str] = thumbnail_url
+        self.thumbnail_width: Optional[int] = thumbnail_width
+        self.thumbnail_height: Optional[int] = thumbnail_height
 
     @property
-    def thumb_url(self):
+    def thumb_url(self) -> str:
         logger.warning(
             'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
         )
         return self.thumbnail_url
 
     @property
-    def thumb_width(self):
+    def thumb_width(self) -> int:
         logger.warning(
             'The parameter "thumb_width" is deprecated, use "thumbnail_width" instead'
         )
         return self.thumbnail_width
 
     @property
-    def thumb_height(self):
+    def thumb_height(self) -> int:
         logger.warning(
             'The parameter "thumb_height" is deprecated, use "thumbnail_height" instead'
         )
@@ -5892,16 +6210,16 @@ class InlineQueryResultContact(InlineQueryResultBase):
 
     def __init__(
         self,
-        id,
-        phone_number,
-        first_name,
-        last_name=None,
-        vcard=None,
-        reply_markup=None,
-        input_message_content=None,
-        thumbnail_url=None,
-        thumbnail_width=None,
-        thumbnail_height=None,
+        id: str,
+        phone_number: str,
+        first_name: str,
+        last_name: Optional[str] = None,
+        vcard: Optional[str] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
+        thumbnail_url: Optional[str] = None,
+        thumbnail_width: Optional[int] = None,
+        thumbnail_height: Optional[int] = None,
     ):
         super().__init__(
             "contact",
@@ -5909,30 +6227,30 @@ class InlineQueryResultContact(InlineQueryResultBase):
             input_message_content=input_message_content,
             reply_markup=reply_markup,
         )
-        self.phone_number = phone_number
-        self.first_name = first_name
-        self.last_name = last_name
-        self.vcard = vcard
-        self.thumbnail_url = thumbnail_url
-        self.thumbnail_width = thumbnail_width
-        self.thumbnail_height = thumbnail_height
+        self.phone_number: str = phone_number
+        self.first_name: str = first_name
+        self.last_name: Optional[str] = last_name
+        self.vcard: Optional[str] = vcard
+        self.thumbnail_url: Optional[str] = thumbnail_url
+        self.thumbnail_width: Optional[int] = thumbnail_width
+        self.thumbnail_height: Optional[int] = thumbnail_height
 
     @property
-    def thumb_url(self):
+    def thumb_url(self) -> str:
         logger.warning(
             'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
         )
         return self.thumbnail_url
 
     @property
-    def thumb_width(self):
+    def thumb_width(self) -> int:
         logger.warning(
             'The parameter "thumb_width" is deprecated, use "thumbnail_width" instead'
         )
         return self.thumbnail_width
 
     @property
-    def thumb_height(self):
+    def thumb_height(self) -> int:
         logger.warning(
             'The parameter "thumb_height" is deprecated, use "thumbnail_height" instead'
         )
@@ -5978,9 +6296,14 @@ class InlineQueryResultGame(InlineQueryResultBase):
     :rtype: :class:`telebot.types.InlineQueryResultGame`
     """
 
-    def __init__(self, id, game_short_name, reply_markup=None):
+    def __init__(
+        self,
+        id: str,
+        game_short_name: str,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+    ):
         super().__init__("game", id, reply_markup=reply_markup)
-        self.game_short_name = game_short_name
+        self.game_short_name: str = game_short_name
 
     def to_dict(self):
         json_dict = super().to_dict()
@@ -5994,17 +6317,18 @@ class InlineQueryResultCachedBase(ABC, JsonSerializable):
     """
 
     def __init__(self):
-        self.type = None
-        self.id = None
-        self.title = None
-        self.description = None
-        self.caption = None
-        self.reply_markup = None
-        self.input_message_content = None
-        self.parse_mode = None
-        self.caption_entities = None
-        self.payload_dic = {}
-        self.show_caption_above_media = None
+        self.type: str = ""
+        self.id: str = ""
+        self.title: Optional[str] = None
+        self.description: Optional[str] = None
+        self.caption: Optional[str] = None
+        self.reply_markup: Optional[InlineKeyboardMarkup] = None
+        self.input_message_content: Optional[InputMessageContent] = None
+        self.parse_mode: Optional[str] = None
+        self.caption_entities: Optional[List[MessageEntity]] = None
+        # noinspection PyTypeChecker
+        self.payload_dic: Dict[str] = {}
+        self.show_caption_above_media: Optional[bool] = None
 
     def to_json(self):
         json_dict = self.payload_dic
@@ -6023,9 +6347,11 @@ class InlineQueryResultCachedBase(ABC, JsonSerializable):
         if self.parse_mode:
             json_dict["parse_mode"] = self.parse_mode
         if self.caption_entities:
-            json_dict['caption_entities'] = MessageEntity.to_list_of_dicts(self.caption_entities)
+            json_dict["caption_entities"] = MessageEntity.to_list_of_dicts(
+                self.caption_entities
+            )
         if self.show_caption_above_media is not None:
-            json_dict['show_caption_above_media'] = self.show_caption_above_media
+            json_dict["show_caption_above_media"] = self.show_caption_above_media
         return json.dumps(json_dict)
 
 
@@ -6074,21 +6400,35 @@ class InlineQueryResultCachedPhoto(InlineQueryResultCachedBase):
     :return: Instance of the class
     :rtype: :class:`telebot.types.InlineQueryResultCachedPhoto`
     """
-    def __init__(self, id, photo_file_id, title=None, description=None,
-                 caption=None, caption_entities = None, parse_mode=None,
-                 reply_markup=None, input_message_content=None, show_caption_above_media=None):
+
+    def __init__(
+        self,
+        id: str,
+        photo_file_id: str,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+        caption: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        parse_mode: Optional[str] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
+        show_caption_above_media: Optional[bool] = None,
+    ):
+
         InlineQueryResultCachedBase.__init__(self)
-        self.type = "photo"
-        self.id = id
-        self.photo_file_id = photo_file_id
-        self.title = title
-        self.description = description
-        self.caption = caption
-        self.caption_entities = caption_entities
-        self.reply_markup = reply_markup
-        self.input_message_content = input_message_content
-        self.parse_mode = parse_mode
-        self.payload_dic['photo_file_id'] = photo_file_id
+        self.type: str = "photo"
+        self.id: str = id
+        self.photo_file_id: str = photo_file_id
+        self.title: Optional[str] = title
+        self.description: Optional[str] = description
+        self.caption: Optional[str] = caption
+        self.caption_entities: Optional[List[MessageEntity]] = caption_entities
+        self.reply_markup: Optional[InlineKeyboardMarkup] = reply_markup
+        self.input_message_content: Optional[InputMessageContent] = (
+            input_message_content
+        )
+        self.parse_mode: Optional[str] = parse_mode
+        self.payload_dic["photo_file_id"] = photo_file_id
         self.show_caption_above_media: Optional[bool] = show_caption_above_media
 
 
@@ -6133,21 +6473,35 @@ class InlineQueryResultCachedGif(InlineQueryResultCachedBase):
     :return: Instance of the class
     :rtype: :class:`telebot.types.InlineQueryResultCachedGif`
     """
-    def __init__(self, id, gif_file_id, title=None, description=None,
-                 caption=None, caption_entities = None, parse_mode=None,
-                 reply_markup=None, input_message_content=None, show_caption_above_media=None):
+
+    def __init__(
+        self,
+        id: str,
+        gif_file_id: str,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+        caption: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        parse_mode: Optional[str] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
+        show_caption_above_media: Optional[bool] = None,
+    ):
+
         InlineQueryResultCachedBase.__init__(self)
-        self.type = "gif"
-        self.id = id
-        self.gif_file_id = gif_file_id
-        self.title = title
-        self.description = description
-        self.caption = caption
-        self.caption_entities = caption_entities
-        self.reply_markup = reply_markup
-        self.input_message_content = input_message_content
-        self.parse_mode = parse_mode
-        self.payload_dic['gif_file_id'] = gif_file_id
+        self.type: str = "gif"
+        self.id: str = id
+        self.gif_file_id: str = gif_file_id
+        self.title: Optional[str] = title
+        self.description: Optional[str] = description
+        self.caption: Optional[str] = caption
+        self.caption_entities: Optional[List[MessageEntity]] = caption_entities
+        self.reply_markup: Optional[InlineKeyboardMarkup] = reply_markup
+        self.input_message_content: Optional[InputMessageContent] = (
+            input_message_content
+        )
+        self.parse_mode: Optional[str] = parse_mode
+        self.payload_dic["gif_file_id"] = gif_file_id
         self.show_caption_above_media: Optional[bool] = show_caption_above_media
 
 
@@ -6192,22 +6546,37 @@ class InlineQueryResultCachedMpeg4Gif(InlineQueryResultCachedBase):
     :return: Instance of the class
     :rtype: :class:`telebot.types.InlineQueryResultCachedMpeg4Gif`
     """
-    def __init__(self, id, mpeg4_file_id, title=None, description=None,
-                 caption=None, caption_entities = None, parse_mode=None,
-                 reply_markup=None, input_message_content=None, show_caption_above_media=None):
+
+    def __init__(
+        self,
+        id: str,
+        mpeg4_file_id: str,
+        title: Optional[str] = None,
+        description: Optional[str] = None,
+        caption: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        parse_mode: Optional[str] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
+        show_caption_above_media: Optional[bool] = None,
+    ):
+
         InlineQueryResultCachedBase.__init__(self)
-        self.type = "mpeg4_gif"
-        self.id = id
-        self.mpeg4_file_id = mpeg4_file_id
-        self.title = title
-        self.description = description
-        self.caption = caption
-        self.caption_entities = caption_entities
-        self.reply_markup = reply_markup
-        self.input_message_content = input_message_content
-        self.parse_mode = parse_mode
-        self.payload_dic['mpeg4_file_id'] = mpeg4_file_id
+        self.type: str = "mpeg4_gif"
+        self.id: str = id
+        self.mpeg4_file_id: str = mpeg4_file_id
+        self.title: Optional[str] = title
+        self.description: Optional[str] = description
+        self.caption: Optional[str] = caption
+        self.caption_entities: Optional[List[MessageEntity]] = caption_entities
+        self.reply_markup: Optional[InlineKeyboardMarkup] = reply_markup
+        self.input_message_content: Optional[InputMessageContent] = (
+            input_message_content
+        )
+        self.parse_mode: Optional[str] = parse_mode
+        self.payload_dic["mpeg4_file_id"] = mpeg4_file_id
         self.show_caption_above_media: Optional[bool] = show_caption_above_media
+
 
 # noinspection PyUnresolvedReferences,PyShadowingBuiltins
 class InlineQueryResultCachedSticker(InlineQueryResultCachedBase):
@@ -6236,14 +6605,20 @@ class InlineQueryResultCachedSticker(InlineQueryResultCachedBase):
     """
 
     def __init__(
-        self, id, sticker_file_id, reply_markup=None, input_message_content=None
+        self,
+        id: str,
+        sticker_file_id: str,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
     ):
         InlineQueryResultCachedBase.__init__(self)
-        self.type = "sticker"
-        self.id = id
-        self.sticker_file_id = sticker_file_id
-        self.reply_markup = reply_markup
-        self.input_message_content = input_message_content
+        self.type: str = "sticker"
+        self.id: str = id
+        self.sticker_file_id: str = sticker_file_id
+        self.reply_markup: Optional[InlineKeyboardMarkup] = reply_markup
+        self.input_message_content: Optional[InputMessageContent] = (
+            input_message_content
+        )
         self.payload_dic["sticker_file_id"] = sticker_file_id
 
 
@@ -6292,27 +6667,30 @@ class InlineQueryResultCachedDocument(InlineQueryResultCachedBase):
 
     def __init__(
         self,
-        id,
-        document_file_id,
-        title,
-        description=None,
-        caption=None,
-        caption_entities=None,
-        parse_mode=None,
-        reply_markup=None,
-        input_message_content=None,
+        id: str,
+        document_file_id: str,
+        title: str,
+        description: Optional[str] = None,
+        caption: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        parse_mode: Optional[str] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
     ):
+
         InlineQueryResultCachedBase.__init__(self)
-        self.type = "document"
-        self.id = id
-        self.document_file_id = document_file_id
-        self.title = title
-        self.description = description
-        self.caption = caption
-        self.caption_entities = caption_entities
-        self.reply_markup = reply_markup
-        self.input_message_content = input_message_content
-        self.parse_mode = parse_mode
+        self.type: str = "document"
+        self.id: str = id
+        self.title: str = title
+        self.document_file_id: str = document_file_id
+        self.description: Optional[str] = description
+        self.caption: Optional[str] = caption
+        self.caption_entities: Optional[List[MessageEntity]] = caption_entities
+        self.reply_markup: Optional[InlineKeyboardMarkup] = reply_markup
+        self.input_message_content: Optional[InputMessageContent] = (
+            input_message_content
+        )
+        self.parse_mode: Optional[str] = parse_mode
         self.payload_dic["document_file_id"] = document_file_id
 
 
@@ -6361,22 +6739,35 @@ class InlineQueryResultCachedVideo(InlineQueryResultCachedBase):
     :return: Instance of the class
     :rtype: :class:`telebot.types.InlineQueryResultCachedVideo`
     """
-    def __init__(self, id, video_file_id, title, description=None,
-                 caption=None, caption_entities = None, parse_mode=None,
-                 reply_markup=None,
-                 input_message_content=None, show_caption_above_media=None):
+
+    def __init__(
+        self,
+        id: str,
+        video_file_id: str,
+        title: str,
+        description: Optional[str] = None,
+        caption: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        parse_mode: Optional[str] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
+        show_caption_above_media: Optional[bool] = None,
+    ):
+
         InlineQueryResultCachedBase.__init__(self)
-        self.type = "video"
-        self.id = id
-        self.video_file_id = video_file_id
-        self.title = title
-        self.description = description
-        self.caption = caption
-        self.caption_entities = caption_entities
-        self.reply_markup = reply_markup
-        self.input_message_content = input_message_content
-        self.parse_mode = parse_mode
-        self.payload_dic['video_file_id'] = video_file_id
+        self.type: str = "video"
+        self.id: str = id
+        self.video_file_id: str = video_file_id
+        self.title: str = title
+        self.description: Optional[str] = description
+        self.caption: Optional[str] = caption
+        self.caption_entities: Optional[List[MessageEntity]] = caption_entities
+        self.reply_markup: Optional[InlineKeyboardMarkup] = reply_markup
+        self.input_message_content: Optional[InputMessageContent] = (
+            input_message_content
+        )
+        self.parse_mode: Optional[str] = parse_mode
+        self.payload_dic["video_file_id"] = video_file_id
         self.show_caption_above_media: Optional[bool] = show_caption_above_media
 
 
@@ -6422,25 +6813,27 @@ class InlineQueryResultCachedVoice(InlineQueryResultCachedBase):
 
     def __init__(
         self,
-        id,
-        voice_file_id,
-        title,
-        caption=None,
-        caption_entities=None,
-        parse_mode=None,
-        reply_markup=None,
-        input_message_content=None,
+        id: str,
+        voice_file_id: str,
+        title: str,
+        caption: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        parse_mode: Optional[str] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
     ):
         InlineQueryResultCachedBase.__init__(self)
-        self.type = "voice"
-        self.id = id
-        self.voice_file_id = voice_file_id
-        self.title = title
-        self.caption = caption
-        self.caption_entities = caption_entities
-        self.reply_markup = reply_markup
-        self.input_message_content = input_message_content
-        self.parse_mode = parse_mode
+        self.type: str = "voice"
+        self.id: str = id
+        self.voice_file_id: str = voice_file_id
+        self.title: str = title
+        self.caption: Optional[str] = caption
+        self.caption_entities: Optional[List[MessageEntity]] = caption_entities
+        self.reply_markup: Optional[InlineKeyboardMarkup] = reply_markup
+        self.input_message_content: Optional[InputMessageContent] = (
+            input_message_content
+        )
+        self.parse_mode: Optional[str] = parse_mode
         self.payload_dic["voice_file_id"] = voice_file_id
 
 
@@ -6483,23 +6876,25 @@ class InlineQueryResultCachedAudio(InlineQueryResultCachedBase):
 
     def __init__(
         self,
-        id,
-        audio_file_id,
-        caption=None,
-        caption_entities=None,
-        parse_mode=None,
-        reply_markup=None,
-        input_message_content=None,
+        id: str,
+        audio_file_id: str,
+        caption: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        parse_mode: Optional[str] = None,
+        reply_markup: Optional[InlineKeyboardMarkup] = None,
+        input_message_content: Optional[InputMessageContent] = None,
     ):
         InlineQueryResultCachedBase.__init__(self)
-        self.type = "audio"
-        self.id = id
-        self.audio_file_id = audio_file_id
-        self.caption = caption
-        self.caption_entities = caption_entities
-        self.reply_markup = reply_markup
-        self.input_message_content = input_message_content
-        self.parse_mode = parse_mode
+        self.type: str = "audio"
+        self.id: str = id
+        self.audio_file_id: str = audio_file_id
+        self.caption: Optional[str] = caption
+        self.caption_entities: Optional[List[MessageEntity]] = caption_entities
+        self.reply_markup: Optional[InlineKeyboardMarkup] = reply_markup
+        self.input_message_content: Optional[InputMessageContent] = (
+            input_message_content
+        )
+        self.parse_mode: Optional[str] = parse_mode
         self.payload_dic["audio_file_id"] = audio_file_id
 
 
@@ -6549,7 +6944,7 @@ class Game(JsonDeserializable):
         return cls(**obj)
 
     @classmethod
-    def parse_photo(cls, photo_size_array):
+    def parse_photo(cls, photo_size_array) -> List[PhotoSize]:
         """
         Parse the photo array into a list of PhotoSize objects
         """
@@ -6559,7 +6954,7 @@ class Game(JsonDeserializable):
         return ret
 
     @classmethod
-    def parse_entities(cls, message_entity_array):
+    def parse_entities(cls, message_entity_array) -> List[MessageEntity]:
         """
         Parse the message entity array into a list of MessageEntity objects
         """
@@ -6652,16 +7047,16 @@ class Animation(JsonDeserializable):
     ):
         self.file_id: str = file_id
         self.file_unique_id: str = file_unique_id
-        self.width: int = width
-        self.height: int = height
-        self.duration: int = duration
-        self.thumbnail: PhotoSize = thumbnail
-        self.file_name: str = file_name
-        self.mime_type: str = mime_type
-        self.file_size: int = file_size
+        self.width: Optional[int] = width
+        self.height: Optional[int] = height
+        self.duration: Optional[int] = duration
+        self.thumbnail: Optional[PhotoSize] = thumbnail
+        self.file_name: Optional[str] = file_name
+        self.mime_type: Optional[str] = mime_type
+        self.file_size: Optional[int] = file_size
 
     @property
-    def thumb(self):
+    def thumb(self) -> Optional[PhotoSize]:
         logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
@@ -6693,7 +7088,7 @@ class GameHighScore(JsonDeserializable):
         obj["user"] = User.de_json(obj["user"])
         return cls(**obj)
 
-    def __init__(self, position, user, score, **kwargs):
+    def __init__(self, position: int, user: User, score: int, **kwargs):
         self.position: int = position
         self.user: User = user
         self.score: int = score
@@ -6856,8 +7251,8 @@ class OrderInfo(JsonDeserializable):
     ):
         self.name: str = name
         self.phone_number: str = phone_number
-        self.email: str = email
-        self.shipping_address: ShippingAddress = shipping_address
+        self.email: Optional[str] = email
+        self.shipping_address: Optional[ShippingAddress] = shipping_address
 
 
 # noinspection PyUnresolvedReferences,PyShadowingBuiltins
@@ -6885,7 +7280,7 @@ class ShippingOption(JsonSerializable):
         self.title: str = title
         self.prices: List[LabeledPrice] = []
 
-    def add_price(self, *args):
+    def add_price(self, *args) -> "ShippingOption":
         """
         Add LabeledPrice to ShippingOption
 
@@ -7067,8 +7462,8 @@ class PreCheckoutQuery(JsonDeserializable):
         self.currency: str = currency
         self.total_amount: int = total_amount
         self.invoice_payload: str = invoice_payload
-        self.shipping_option_id: str = shipping_option_id
-        self.order_info: OrderInfo = order_info
+        self.shipping_option_id: Optional[str] = shipping_option_id
+        self.order_info: Optional[OrderInfo] = order_info
 
 
 # Stickers
@@ -7119,15 +7514,15 @@ class StickerSet(JsonDeserializable):
         self.title: str = title
         self.sticker_type: str = sticker_type
         self.stickers: List[Sticker] = stickers
-        self.thumbnail: PhotoSize = thumbnail
+        self.thumbnail: Optional[PhotoSize] = thumbnail
 
     @property
-    def thumb(self):
+    def thumb(self) -> Optional[PhotoSize]:
         logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
     @property
-    def contains_masks(self):
+    def contains_masks(self) -> bool:
         """
         Deprecated since Bot API 6.2, use sticker_type instead.
         """
@@ -7137,7 +7532,7 @@ class StickerSet(JsonDeserializable):
         return self.sticker_type == "mask"
 
     @property
-    def is_animated(self):
+    def is_animated(self) -> bool:
         """
         Deprecated since Bot API 7.2. Stickers can be mixed now.
         """
@@ -7147,7 +7542,7 @@ class StickerSet(JsonDeserializable):
         return False
 
     @property
-    def is_video(self):
+    def is_video(self) -> bool:
         """
         Deprecated since Bot API 7.2. Stickers can be mixed now.
         """
@@ -7258,17 +7653,17 @@ class Sticker(JsonDeserializable):
         self.height: int = height
         self.is_animated: bool = is_animated
         self.is_video: bool = is_video
-        self.thumbnail: PhotoSize = thumbnail
-        self.emoji: str = emoji
-        self.set_name: str = set_name
-        self.mask_position: MaskPosition = mask_position
-        self.file_size: int = file_size
-        self.premium_animation: File = premium_animation
-        self.custom_emoji_id: int = custom_emoji_id
-        self.needs_repainting: bool = needs_repainting
+        self.thumbnail: Optional[PhotoSize] = thumbnail
+        self.emoji: Optional[str] = emoji
+        self.set_name: Optional[str] = set_name
+        self.mask_position: Optional[MaskPosition] = mask_position
+        self.file_size: Optional[int] = file_size
+        self.premium_animation: Optional[File] = premium_animation
+        self.custom_emoji_id: Optional[str] = custom_emoji_id
+        self.needs_repainting: Optional[bool] = needs_repainting
 
     @property
-    def thumb(self):
+    def thumb(self) -> Optional[PhotoSize]:
         logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
@@ -7324,6 +7719,7 @@ class MaskPosition(Dictionaryable, JsonDeserializable, JsonSerializable):
 
 
 # InputMedia
+
 
 # noinspection PyShadowingBuiltins
 class InputMedia(Dictionaryable, JsonSerializable):
@@ -7409,7 +7805,16 @@ class InputMediaPhoto(InputMedia):
     :return: Instance of the class
     :rtype: :class:`telebot.types.InputMediaPhoto`
     """
-    def __init__(self, media, caption=None, parse_mode=None, caption_entities=None, has_spoiler=None, show_caption_above_media=None):
+
+    def __init__(
+        self,
+        media: Union[str, InputFile],
+        caption: Optional[str] = None,
+        parse_mode: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        has_spoiler: Optional[bool] = None,
+        show_caption_above_media: Optional[bool] = None,
+    ):
         if service_utils.is_pil_image(media):
             media = service_utils.pil_image_to_file(media)
 
@@ -7427,9 +7832,9 @@ class InputMediaPhoto(InputMedia):
     def to_dict(self):
         ret = super(InputMediaPhoto, self).to_dict()
         if self.has_spoiler is not None:
-            ret['has_spoiler'] = self.has_spoiler
+            ret["has_spoiler"] = self.has_spoiler
         if self.show_caption_above_media is not None:
-            ret['show_caption_above_media'] = self.show_caption_above_media
+            ret["show_caption_above_media"] = self.show_caption_above_media
         return ret
 
 
@@ -7483,8 +7888,21 @@ class InputMediaVideo(InputMedia):
     :return: Instance of the class
     :rtype: :class:`telebot.types.InputMediaVideo`
     """
-    def __init__(self, media, thumbnail=None, caption=None, parse_mode=None, caption_entities=None,
-                 width=None, height=None, duration=None, supports_streaming=None, has_spoiler=None, show_caption_above_media=None):
+
+    def __init__(
+        self,
+        media: Union[str, InputFile],
+        thumbnail: Optional[Union[str, InputFile]] = None,
+        caption: Optional[str] = None,
+        parse_mode: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        width: Optional[int] = None,
+        height: Optional[int] = None,
+        duration: Optional[int] = None,
+        supports_streaming: Optional[bool] = None,
+        has_spoiler: Optional[bool] = None,
+        show_caption_above_media: Optional[bool] = None,
+    ):
         super(InputMediaVideo, self).__init__(
             type="video",
             media=media,
@@ -7492,16 +7910,16 @@ class InputMediaVideo(InputMedia):
             parse_mode=parse_mode,
             caption_entities=caption_entities,
         )
-        self.thumbnail = thumbnail
-        self.width = width
-        self.height = height
-        self.duration = duration
-        self.supports_streaming = supports_streaming
+        self.thumbnail: Optional[Union[str, InputFile]] = thumbnail
+        self.width: Optional[int] = width
+        self.height: Optional[int] = height
+        self.duration: Optional[int] = duration
+        self.supports_streaming: Optional[bool] = supports_streaming
         self.has_spoiler: Optional[bool] = has_spoiler
         self.show_caption_above_media: Optional[bool] = show_caption_above_media
 
     @property
-    def thumb(self):
+    def thumb(self) -> Optional[Union[str, Any]]:
         logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
@@ -7515,12 +7933,12 @@ class InputMediaVideo(InputMedia):
             ret["height"] = self.height
         if self.duration:
             ret["duration"] = self.duration
-        if self.supports_streaming:
+        if self.supports_streaming is not None:
             ret["supports_streaming"] = self.supports_streaming
         if self.has_spoiler is not None:
-            ret['has_spoiler'] = self.has_spoiler
+            ret["has_spoiler"] = self.has_spoiler
         if self.show_caption_above_media is not None:
-            ret['show_caption_above_media'] = self.show_caption_above_media
+            ret["show_caption_above_media"] = self.show_caption_above_media
         return ret
 
 
@@ -7571,8 +7989,20 @@ class InputMediaAnimation(InputMedia):
     :return: Instance of the class
     :rtype: :class:`telebot.types.InputMediaAnimation`
     """
-    def __init__(self, media, thumbnail=None, caption=None, parse_mode=None, caption_entities=None,
-                 width=None, height=None, duration=None, has_spoiler=None, show_caption_above_media=None):
+
+    def __init__(
+        self,
+        media: Union[str, InputFile],
+        thumbnail: Optional[Union[str, InputFile]] = None,
+        caption: Optional[str] = None,
+        parse_mode: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        width: Optional[int] = None,
+        height: Optional[int] = None,
+        duration: Optional[int] = None,
+        has_spoiler: Optional[bool] = None,
+        show_caption_above_media: Optional[bool] = None,
+    ):
         super(InputMediaAnimation, self).__init__(
             type="animation",
             media=media,
@@ -7580,15 +8010,15 @@ class InputMediaAnimation(InputMedia):
             parse_mode=parse_mode,
             caption_entities=caption_entities,
         )
-        self.thumbnail = thumbnail
-        self.width = width
-        self.height = height
-        self.duration = duration
+        self.thumbnail: Optional[Union[str, InputFile]] = thumbnail
+        self.width: Optional[int] = width
+        self.height: Optional[int] = height
+        self.duration: Optional[int] = duration
         self.has_spoiler: Optional[bool] = has_spoiler
         self.show_caption_above_media: Optional[bool] = show_caption_above_media
 
     @property
-    def thumb(self):
+    def thumb(self) -> Optional[Union[str, Any]]:
         logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
@@ -7603,9 +8033,9 @@ class InputMediaAnimation(InputMedia):
         if self.duration:
             ret["duration"] = self.duration
         if self.has_spoiler is not None:
-            ret['has_spoiler'] = self.has_spoiler
+            ret["has_spoiler"] = self.has_spoiler
         if self.show_caption_above_media is not None:
-            ret['show_caption_above_media'] = self.show_caption_above_media
+            ret["show_caption_above_media"] = self.show_caption_above_media
         return ret
 
 
@@ -7653,14 +8083,14 @@ class InputMediaAudio(InputMedia):
 
     def __init__(
         self,
-        media,
-        thumbnail=None,
-        caption=None,
-        parse_mode=None,
-        caption_entities=None,
-        duration=None,
-        performer=None,
-        title=None,
+        media: Union[str, InputFile],
+        thumbnail: Optional[Union[str, InputFile]] = None,
+        caption: Optional[str] = None,
+        parse_mode: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        duration: Optional[int] = None,
+        performer: Optional[str] = None,
+        title: Optional[str] = None,
     ):
         super(InputMediaAudio, self).__init__(
             type="audio",
@@ -7669,13 +8099,13 @@ class InputMediaAudio(InputMedia):
             parse_mode=parse_mode,
             caption_entities=caption_entities,
         )
-        self.thumbnail = thumbnail
-        self.duration = duration
-        self.performer = performer
-        self.title = title
+        self.thumbnail: Optional[Union[str, InputFile]] = thumbnail
+        self.duration: Optional[int] = duration
+        self.performer: Optional[str] = performer
+        self.title: Optional[str] = title
 
     @property
-    def thumb(self):
+    def thumb(self) -> Optional[Union[str, Any]]:
         logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
@@ -7731,12 +8161,12 @@ class InputMediaDocument(InputMedia):
 
     def __init__(
         self,
-        media,
-        thumbnail=None,
-        caption=None,
-        parse_mode=None,
-        caption_entities=None,
-        disable_content_type_detection=None,
+        media: Union[str, InputFile],
+        thumbnail: Optional[Union[str, InputFile]] = None,
+        caption: Optional[str] = None,
+        parse_mode: Optional[str] = None,
+        caption_entities: Optional[List[MessageEntity]] = None,
+        disable_content_type_detection: Optional[bool] = None,
     ):
         super(InputMediaDocument, self).__init__(
             type="document",
@@ -7745,11 +8175,13 @@ class InputMediaDocument(InputMedia):
             parse_mode=parse_mode,
             caption_entities=caption_entities,
         )
-        self.thumbnail = thumbnail
-        self.disable_content_type_detection = disable_content_type_detection
+        self.thumbnail: Optional[Union[str, InputFile]] = thumbnail
+        self.disable_content_type_detection: Optional[bool] = (
+            disable_content_type_detection
+        )
 
     @property
-    def thumb(self):
+    def thumb(self) -> Optional[Union[str, Any]]:
         logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
@@ -7786,14 +8218,15 @@ class PollOption(JsonDeserializable):
         if json_string is None:
             return None
         obj = cls.check_json(json_string, dict_copy=False)
-        if 'text_entities' in obj:
-            obj['text_entities'] = Message.parse_entities(obj['text_entities'])
+        if "text_entities" in obj:
+            obj["text_entities"] = Message.parse_entities(obj["text_entities"])
         return cls(**obj)
 
-    def __init__(self, text, voter_count = 0, text_entities=None, **kwargs):
+    def __init__(self, text, voter_count=0, text_entities=None, **kwargs):
         self.text: str = text
         self.voter_count: int = voter_count
-        self.text_entities: List[MessageEntity] = text_entities
+        self.text_entities: Optional[List[MessageEntity]] = text_entities
+
     # Converted in _convert_poll_options
     # def to_json(self):
     #     # send_poll Option is a simple string: https://core.telegram.org/bots/api#sendpoll
@@ -7818,10 +8251,17 @@ class InputPollOption(JsonSerializable):
     :return: Instance of the class
     :rtype: :class:`telebot.types.PollOption`
     """
-    def __init__(self, text, text_parse_mode=None, text_entities=None, **kwargs):
+
+    def __init__(
+        self,
+        text: str,
+        text_parse_mode: Optional[str] = None,
+        text_entities: Optional[List[MessageEntity]] = None,
+        **kwargs,
+    ):
         self.text: str = text
         self.text_parse_mode: Optional[str] = text_parse_mode
-        self.text_entities: List[MessageEntity] = text_entities
+        self.text_entities: Optional[List[MessageEntity]] = text_entities
 
     def to_json(self):
         return json.dumps(self.to_dict())
@@ -7833,10 +8273,13 @@ class InputPollOption(JsonSerializable):
         if self.text_parse_mode:
             json_dict["text_parse_mode"] = self.text_parse_mode
         if self.text_entities:
-            json_dict['text_entities'] = [entity.to_dict() for entity in self.text_entities]
+            json_dict["text_entities"] = [
+                entity.to_dict() for entity in self.text_entities
+            ]
         return json_dict
 
 
+# noinspection PyShadowingBuiltins
 class Poll(JsonDeserializable):
     """
     This object contains information about a poll.
@@ -7898,21 +8341,34 @@ class Poll(JsonDeserializable):
         options = []
         for opt in obj["options"]:
             options.append(PollOption.de_json(opt))
-        obj['options'] = options or None
-        if 'explanation_entities' in obj:
-            obj['explanation_entities'] = Message.parse_entities(obj['explanation_entities'])
-        if 'question_entities' in obj:
-            obj['question_entities'] = Message.parse_entities(obj['question_entities'])
+        obj["options"] = options or None
+        if "explanation_entities" in obj:
+            obj["explanation_entities"] = Message.parse_entities(
+                obj["explanation_entities"]
+            )
+        if "question_entities" in obj:
+            obj["question_entities"] = Message.parse_entities(obj["question_entities"])
         return cls(**obj)
 
-    # noinspection PyShadowingBuiltins
     def __init__(
-            self,
-            question, options,
-            poll_id=None, total_voter_count=None, is_closed=None, is_anonymous=None, type=None,
-            allows_multiple_answers=None, correct_option_id=None, explanation=None, explanation_entities=None,
-            open_period=None, close_date=None, poll_type=None, question_entities=None,
-            **kwargs):
+        self,
+        question: str,
+        options: List[PollOption],
+        poll_id: str = None,
+        total_voter_count: int = None,
+        is_closed: bool = None,
+        is_anonymous: bool = None,
+        type: str = None,
+        allows_multiple_answers: bool = None,
+        correct_option_id: int = None,
+        explanation: str = None,
+        explanation_entities: List[MessageEntity] = None,
+        open_period: int = None,
+        close_date: int = None,
+        poll_type: str = None,
+        question_entities: List[MessageEntity] = None,
+        **kwargs,
+    ):
         self.id: str = poll_id
         self.question: str = question
         self.options: List[PollOption] = options
@@ -7979,10 +8435,17 @@ class PollAnswer(JsonSerializable, JsonDeserializable, Dictionaryable):
             obj["voter_chat"] = Chat.de_json(obj["voter_chat"])
         return cls(**obj)
 
-    def __init__(self, poll_id, option_ids, user=None, voter_chat=None, **kwargs):
+    def __init__(
+        self,
+        poll_id: str,
+        option_ids: List[int],
+        user: Optional[User] = None,
+        voter_chat: Optional[Chat] = None,
+        **kwargs,
+    ):
         self.poll_id: str = poll_id
         self.user: Optional[User] = user
-        self.option_ids: List[int] = option_ids
+        self.option_ids: Optional[List[int]] = option_ids
         self.voter_chat: Optional[Chat] = voter_chat
 
     def to_json(self):
@@ -8022,7 +8485,7 @@ class ChatLocation(JsonSerializable, JsonDeserializable, Dictionaryable):
         obj["location"] = Location.de_json(obj["location"])
         return cls(**obj)
 
-    def __init__(self, location, address, **kwargs):
+    def __init__(self, location: Location, address: str, **kwargs):
         self.location: Location = location
         self.address: str = address
 
@@ -8082,15 +8545,15 @@ class ChatInviteLink(JsonSerializable, JsonDeserializable, Dictionaryable):
 
     def __init__(
         self,
-        invite_link,
-        creator,
-        creates_join_request,
-        is_primary,
-        is_revoked,
-        name=None,
-        expire_date=None,
-        member_limit=None,
-        pending_join_request_count=None,
+        invite_link: str,
+        creator: User,
+        creates_join_request: bool,
+        is_primary: bool,
+        is_revoked: bool,
+        name: Optional[str] = None,
+        expire_date: Optional[int] = None,
+        member_limit: Optional[int] = None,
+        pending_join_request_count: Optional[int] = None,
         **kwargs,
     ):
         self.invite_link: str = invite_link
@@ -8098,10 +8561,10 @@ class ChatInviteLink(JsonSerializable, JsonDeserializable, Dictionaryable):
         self.creates_join_request: bool = creates_join_request
         self.is_primary: bool = is_primary
         self.is_revoked: bool = is_revoked
-        self.name: str = name
-        self.expire_date: int = expire_date
-        self.member_limit: int = member_limit
-        self.pending_join_request_count: int = pending_join_request_count
+        self.name: Optional[str] = name
+        self.expire_date: Optional[int] = expire_date
+        self.member_limit: Optional[int] = member_limit
+        self.pending_join_request_count: Optional[int] = pending_join_request_count
 
     def to_json(self):
         return json.dumps(self.to_dict())
@@ -8309,7 +8772,7 @@ class MessageAutoDeleteTimerChanged(JsonDeserializable):
         return cls(**obj)
 
     def __init__(self, message_auto_delete_time, **kwargs):
-        self.message_auto_delete_time = message_auto_delete_time
+        self.message_auto_delete_time: int = message_auto_delete_time
 
 
 class MenuButton(JsonDeserializable, JsonSerializable, Dictionaryable):
@@ -8330,12 +8793,12 @@ class MenuButton(JsonDeserializable, JsonSerializable, Dictionaryable):
             return None
         obj = cls.check_json(json_string)
         types = {
-            'commands': MenuButtonCommands,
-            'web_app': MenuButtonWebApp,
-            'default': MenuButtonDefault
+            "commands": MenuButtonCommands,
+            "web_app": MenuButtonWebApp,
+            "default": MenuButtonDefault,
         }
-        return types[obj['type']](**obj)
-    
+        return types[obj["type"]](**obj)
+
     def to_json(self):
         """
         :meta private:
@@ -8349,7 +8812,7 @@ class MenuButton(JsonDeserializable, JsonSerializable, Dictionaryable):
         raise NotImplementedError
 
 
-# noinspection PyUnusedLocal
+# noinspection PyUnusedLocal,PyShadowingBuiltins
 class MenuButtonCommands(MenuButton):
     """
     Represents a menu button, which opens the bot's list of commands.
@@ -8363,7 +8826,7 @@ class MenuButtonCommands(MenuButton):
     :rtype: :class:`telebot.types.MenuButtonCommands`
     """
 
-    def __init__(self, type=None, **kwargs):
+    def __init__(self, type: str = None, **kwargs):
         self.type: str = "commands"
 
     def to_dict(self):
@@ -8373,7 +8836,7 @@ class MenuButtonCommands(MenuButton):
         return json.dumps(self.to_dict())
 
 
-# noinspection PyUnusedLocal
+# noinspection PyUnusedLocal,PyShadowingBuiltins
 class MenuButtonWebApp(MenuButton):
     """
     Represents a menu button, which launches a Web App.
@@ -8387,14 +8850,16 @@ class MenuButtonWebApp(MenuButton):
     :type text: :obj:`str`
 
     :param web_app: Description of the Web App that will be launched when the user presses the button. The Web App will be
-        able to send an arbitrary message on behalf of the user using the method answerWebAppQuery.
+        able to send an arbitrary message on behalf of the user using the method answerWebAppQuery. Alternatively, a t.me link
+        to a Web App of the bot can be specified in the object instead of the Web App's URL, in which case the Web App will be
+        opened as if the user pressed the link.
     :type web_app: :class:`telebot.types.WebAppInfo`
 
     :return: Instance of the class
     :rtype: :class:`telebot.types.MenuButtonWebApp`
     """
 
-    def __init__(self, type, text, web_app, **kwargs):
+    def __init__(self, type: str, text: str, web_app: WebAppInfo, **kwargs):
         self.type: str = "web_app"
         self.text: str = text
         self.web_app: WebAppInfo = web_app
@@ -8406,7 +8871,7 @@ class MenuButtonWebApp(MenuButton):
         return json.dumps(self.to_dict())
 
 
-# noinspection PyUnusedLocal
+# noinspection PyUnusedLocal,PyShadowingBuiltins
 class MenuButtonDefault(MenuButton):
     """
     Describes that no specific value for the menu button was set.
@@ -8420,7 +8885,7 @@ class MenuButtonDefault(MenuButton):
     :rtype: :class:`telebot.types.MenuButtonDefault`
     """
 
-    def __init__(self, type=None, **kwargs):
+    def __init__(self, type: str = None, **kwargs):
         self.type: str = "default"
 
     def to_dict(self):
@@ -8507,13 +8972,13 @@ class ChatAdministratorRights(JsonDeserializable, JsonSerializable, Dictionaryab
         can_promote_members: bool,
         can_change_info: bool,
         can_invite_users: bool,
-        can_post_messages: bool = None,
-        can_edit_messages: bool = None,
-        can_pin_messages: bool = None,
-        can_manage_topics: bool = None,
-        can_post_stories: bool = None,
-        can_edit_stories: bool = None,
-        can_delete_stories: bool = None,
+        can_post_messages: Optional[bool] = None,
+        can_edit_messages: Optional[bool] = None,
+        can_pin_messages: Optional[bool] = None,
+        can_manage_topics: Optional[bool] = None,
+        can_post_stories: Optional[bool] = None,
+        can_edit_stories: Optional[bool] = None,
+        can_delete_stories: Optional[bool] = None,
         **kwargs,
     ) -> None:
 
@@ -8525,13 +8990,13 @@ class ChatAdministratorRights(JsonDeserializable, JsonSerializable, Dictionaryab
         self.can_promote_members: bool = can_promote_members
         self.can_change_info: bool = can_change_info
         self.can_invite_users: bool = can_invite_users
-        self.can_post_messages: bool = can_post_messages
-        self.can_edit_messages: bool = can_edit_messages
-        self.can_pin_messages: bool = can_pin_messages
-        self.can_manage_topics: bool = can_manage_topics
-        self.can_post_stories: bool = can_post_stories
-        self.can_edit_stories: bool = can_edit_stories
-        self.can_delete_stories: bool = can_delete_stories
+        self.can_post_messages: Optional[bool] = can_post_messages
+        self.can_edit_messages: Optional[bool] = can_edit_messages
+        self.can_pin_messages: Optional[bool] = can_pin_messages
+        self.can_manage_topics: Optional[bool] = can_manage_topics
+        self.can_post_stories: Optional[bool] = can_post_stories
+        self.can_edit_stories: Optional[bool] = can_edit_stories
+        self.can_delete_stories: Optional[bool] = can_delete_stories
 
     def to_dict(self):
         json_dict = {
@@ -8603,8 +9068,10 @@ class InputFile:
         )
     """
 
-    def __init__(self, file) -> None:
-        self._file, self.file_name = self._resolve_file(file)
+    def __init__(self, file: Union[str, IOBase, Path], file_name: Optional[str] = None):
+        self._file, self._file_name = self._resolve_file(file)
+        if file_name:
+            self._file_name = file_name
 
     @staticmethod
     def _resolve_file(file):
@@ -8622,11 +9089,18 @@ class InputFile:
             )
 
     @property
-    def file(self):
+    def file(self) -> Union[IOBase, str]:
         """
         File object.
         """
         return self._file
+
+    @property
+    def file_name(self) -> str:
+        """
+        File name.
+        """
+        return self._file_name
 
 
 class ForumTopicCreated(JsonDeserializable):
@@ -8838,9 +9312,9 @@ class WriteAccessAllowed(JsonDeserializable):
         from_attachment_menu: Optional[bool] = None,
         **kwargs,
     ) -> None:
-        self.web_app_name: str = web_app_name
-        self.from_request: bool = from_request
-        self.from_attachment_menu: bool = from_attachment_menu
+        self.web_app_name: Optional[str] = web_app_name
+        self.from_request: Optional[bool] = from_request
+        self.from_attachment_menu: Optional[bool] = from_attachment_menu
 
 
 class ChatShared(JsonDeserializable):
@@ -9017,7 +9491,7 @@ class InputSticker(Dictionaryable, JsonSerializable):
     def to_json(self) -> str:
         return json.dumps(self.to_dict())
 
-    def convert_input_sticker(self):
+    def convert_input_sticker(self) -> Tuple[str, Optional[dict]]:
         if service_utils.is_string(self.sticker):
             return self.to_json(), None
 
@@ -9060,18 +9534,17 @@ class SwitchInlineQueryChosenChat(JsonDeserializable, Dictionaryable, JsonSerial
 
     def __init__(
         self,
-        query=None,
-        allow_user_chats=None,
-        allow_bot_chats=None,
-        allow_group_chats=None,
-        allow_channel_chats=None,
-        **kwargs,
-    ):
-        self.query: str = query
-        self.allow_user_chats: bool = allow_user_chats
-        self.allow_bot_chats: bool = allow_bot_chats
-        self.allow_group_chats: bool = allow_group_chats
-        self.allow_channel_chats: bool = allow_channel_chats
+        query: Optional[str] = None,
+        allow_user_chats: Optional[bool] = None,
+        allow_bot_chats: Optional[bool] = None,
+        allow_group_chats: Optional[bool] = None,
+        allow_channel_chats: Optional[bool] = None,
+    ) -> None:
+        self.query: Optional[str] = query
+        self.allow_user_chats: Optional[bool] = allow_user_chats
+        self.allow_bot_chats: Optional[bool] = allow_bot_chats
+        self.allow_group_chats: Optional[bool] = allow_group_chats
+        self.allow_channel_chats: Optional[bool] = allow_channel_chats
 
     def to_dict(self):
         json_dict = {}
@@ -9168,6 +9641,7 @@ class InlineQueryResultsButton(JsonSerializable, Dictionaryable):
         return json.dumps(self.to_dict())
 
 
+# noinspection PyShadowingBuiltins
 class Story(JsonDeserializable):
     """
     This object represents a story.
@@ -9288,6 +9762,26 @@ class ReactionTypeCustomEmoji(ReactionType):
         json_dict = super().to_dict()
         json_dict["custom_emoji_id"] = self.custom_emoji_id
         return json_dict
+
+
+class ReactionTypePaid(ReactionType):
+    """
+    This object represents a paid reaction type.
+
+    Telegram documentation: https://core.telegram.org/bots/api#reactiontypepaid
+
+    :param type: Type of the reaction, must be paid
+    :type type: :obj:`str`
+
+    :return: Instance of the class
+    :rtype: :class:`ReactionTypePaid`
+    """
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__("paid")
+
+    def to_dict(self) -> dict:
+        return super().to_dict()
 
 
 class MessageReactionUpdated(JsonDeserializable):
@@ -9465,6 +9959,9 @@ class ExternalReplyInfo(JsonDeserializable):
     :param document: Optional. Message is a general file, information about the file
     :type document: :class:`Document`
 
+    :param paid_media: Optional. Message is a paid media content
+    :type paid_media: :class:`PaidMedia`
+
     :param photo: Optional. Message is a photo, available sizes of the photo
     :type photo: :obj:`list` of :class:`PhotoSize`
 
@@ -9592,6 +10089,7 @@ class ExternalReplyInfo(JsonDeserializable):
         location: Optional[Location] = None,
         poll: Optional[Poll] = None,
         venue: Optional[Venue] = None,
+        paid_media: Optional[PaidMediaInfo] = None,
         **kwargs,
     ) -> None:
         self.origin: MessageOrigin = origin
@@ -9617,6 +10115,7 @@ class ExternalReplyInfo(JsonDeserializable):
         self.location: Optional[Location] = location
         self.poll: Optional[Poll] = poll
         self.venue: Optional[Venue] = venue
+        self.paid_media: Optional[PaidMediaInfo] = paid_media
 
 
 # noinspection PyUnresolvedReferences,PyShadowingBuiltins
@@ -9847,6 +10346,9 @@ class Giveaway(JsonDeserializable):
     :param country_codes: Optional. A list of two-letter ISO 3166-1 alpha-2 country codes indicating the countries from which eligible users for the giveaway must come. If empty, then all users can participate in the giveaway.
     :type country_codes: :obj:`list` of :obj:`str`
 
+    :param prize_star_count: Optional. The number of Telegram Stars to be split between giveaway winners; for Telegram Star giveaways only
+    :type prize_star_count: :obj:`int`
+
     :param premium_subscription_month_count: Optional. The number of months the Telegram Premium subscription won from the giveaway will be active for
     :type premium_subscription_month_count: :obj:`int`
 
@@ -9872,6 +10374,7 @@ class Giveaway(JsonDeserializable):
         prize_description: Optional[str] = None,
         country_codes: Optional[List[str]] = None,
         premium_subscription_month_count: Optional[int] = None,
+        prize_star_count: Optional[int] = None,
         **kwargs,
     ) -> None:
         self.chats: List[Chat] = chats
@@ -9884,6 +10387,7 @@ class Giveaway(JsonDeserializable):
         self.premium_subscription_month_count: Optional[int] = (
             premium_subscription_month_count
         )
+        self.prize_star_count: Optional[int] = prize_star_count
 
 
 class GiveawayWinners(JsonDeserializable):
@@ -9925,6 +10429,9 @@ class GiveawayWinners(JsonDeserializable):
     :param prize_description: Optional. Description of additional giveaway prize
     :type prize_description: :obj:`str`
 
+    :param prize_star_count: Optional. The number of Telegram Stars to be split between giveaway winners; for Telegram Star giveaways only
+    :type prize_star_count: :obj:`int`
+
     :return: Instance of the class
     :rtype: :class:`GiveawayWinners`
     """
@@ -9951,6 +10458,7 @@ class GiveawayWinners(JsonDeserializable):
         only_new_members: Optional[bool] = None,
         was_refunded: Optional[bool] = None,
         prize_description: Optional[str] = None,
+        prize_star_count: Optional[int] = None,
         **kwargs,
     ) -> None:
         self.chat: Chat = chat
@@ -9966,6 +10474,7 @@ class GiveawayWinners(JsonDeserializable):
         self.only_new_members: Optional[bool] = only_new_members
         self.was_refunded: Optional[bool] = was_refunded
         self.prize_description: Optional[str] = prize_description
+        self.prize_star_count: Optional[int] = prize_star_count
 
 
 class GiveawayCompleted(JsonDeserializable):
@@ -9982,6 +10491,9 @@ class GiveawayCompleted(JsonDeserializable):
 
     :param giveaway_message: Optional. Message with the giveaway that was completed, if it wasn't deleted
     :type giveaway_message: :class:`Message`
+
+    :param is_star_giveaway: Optional. True, if the giveaway was a Telegram Star giveaway
+    :type is_star_giveaway: :obj:`bool`
 
     :return: Instance of the class
     :rtype: :class:`GiveawayCompleted`
@@ -10001,16 +10513,23 @@ class GiveawayCompleted(JsonDeserializable):
         winner_count: int,
         unclaimed_prize_count: Optional[int] = None,
         giveaway_message: Optional[Message] = None,
+        is_star_giveaway: Optional[bool] = None,
         **kwargs,
     ) -> None:
         self.winner_count: int = winner_count
         self.unclaimed_prize_count: Optional[int] = unclaimed_prize_count
         self.giveaway_message: Optional[Message] = giveaway_message
+        self.is_star_giveaway: Optional[bool] = is_star_giveaway
 
 
 class GiveawayCreated(JsonDeserializable):
     """
-    This object represents a service message about the creation of a scheduled giveaway. Currently holds no information.
+    This object represents a service message about the creation of a scheduled giveaway.
+
+    :prize_star_count: Optional. The number of Telegram Stars to be split between giveaway winners; for Telegram Star giveaways only
+    :type prize_star_count: :obj:`int`
+
+    :return: Instance of the class
     """
 
     @classmethod
@@ -10020,8 +10539,8 @@ class GiveawayCreated(JsonDeserializable):
         obj = cls.check_json(json_string)
         return cls(**obj)
 
-    def __init__(self, **kwargs) -> None:
-        pass
+    def __init__(self, prize_star_count=None, **kwargs) -> None:
+        self.prize_star_count: Optional[str] = prize_star_count
 
 
 class TextQuote(JsonDeserializable):
@@ -10075,6 +10594,8 @@ class TextQuote(JsonDeserializable):
         """
         Returns html-rendered text.
         """
+        if self.text is None:
+            return None
         return apply_html_entities(
             self.text, self.entities, getattr(self, "custom_subs", None)
         )
@@ -10185,20 +10706,20 @@ class UsersShared(JsonDeserializable):
         if json_string is None:
             return None
         obj = cls.check_json(json_string)
-        obj['users'] = [SharedUser.de_json(user) for user in obj['users']]
+        obj["users"] = [SharedUser.de_json(user) for user in obj["users"]]
         return cls(**obj)
 
-    def __init__(self, request_id, users: List[SharedUser], **kwargs):
-        self.request_id = request_id
-        self.users = users
+    def __init__(self, request_id: int, users: List[SharedUser], **kwargs):
+        self.request_id: int = request_id
+        self.users: List[SharedUser] = users
 
     @property
-    def user_id(self):
+    def user_id(self) -> None:
         logger.warning('The parameter "user_id" is deprecated, use "user_ids" instead')
         return None
 
     @property
-    def user_ids(self):
+    def user_ids(self) -> List[SharedUser]:
         logger.warning('The parameter "user_ids" is deprecated, use "users" instead')
         return self.users
 
@@ -10377,6 +10898,9 @@ class ChatBoostSourceGiveaway(ChatBoostSource):
     :param is_unclaimed: True, if the giveaway was completed, but there was no user to win the prize
     :type is_unclaimed: :obj:`bool`
 
+    :param prize_star_count: Optional. The number of Telegram Stars to be split between giveaway winners; for Telegram Star giveaways only
+    :type prize_star_count: :obj:`int`
+
     :return: Instance of the class
     :rtype: :class:`ChatBoostSourceGiveaway`
     """
@@ -10390,12 +10914,19 @@ class ChatBoostSourceGiveaway(ChatBoostSource):
         return cls(**obj)
 
     def __init__(
-        self, source, giveaway_message_id, user=None, is_unclaimed=None, **kwargs
+        self,
+        source,
+        giveaway_message_id,
+        user=None,
+        is_unclaimed=None,
+        prize_star_count=None,
+        **kwargs,
     ):
         self.source: str = source
         self.giveaway_message_id: int = giveaway_message_id
-        self.user: User = user
-        self.is_unclaimed: bool = is_unclaimed
+        self.user: Optional[User] = user
+        self.is_unclaimed: Optional[bool] = is_unclaimed
+        self.prize_star_count: Optional[int] = prize_star_count
 
 
 class ChatBoost(JsonDeserializable):
@@ -10516,19 +11047,78 @@ class InaccessibleMessage(JsonDeserializable):
 
     def __getattr__(self, item):
         if item in [
-            'message_thread_id', 'from_user', 'sender_chat', 'forward_origin', 'is_topic_message',
-            'is_automatic_forward', 'reply_to_message', 'external_reply', 'qoute', 'via_bot', 'edit_date',
-            'has_protected_content', 'media_group_id', 'author_signature', 'text', 'entities', 'link_preview_options',
-            'animation', 'audio', 'document', 'photo', 'sticker', 'story', 'video', 'video_note', 'voice', 'caption',
-            'caption_entities', 'has_media_spoiler', 'contact', 'dice', 'game', 'poll', 'venue', 'location',
-            'new_chat_members', 'left_chat_member', 'new_chat_title', 'new_chat_photo', 'delete_chat_photo',
-            'group_chat_created', 'supergroup_chat_created', 'channel_chat_created', 'message_auto_delete_timer_changed',
-            'migrate_to_chat_id', 'migrate_from_chat_id', 'pinned_message', 'invoice', 'successful_payment',
-            'users_shared', 'chat_shared', 'connected_website', 'write_access_allowed', 'passport_data',
-            'proximity_alert_triggered', 'chat_background_set', 'forum_topic_created', 'forum_topic_edited', 'forum_topic_closed',
-            'forum_topic_reopened', 'general_forum_topic_hidden', 'general_forum_topic_unhidden', 'giveaway_created',
-            'giveaway', 'giveaway_winners', 'giveaway_completed', 'video_chat_scheduled', 'video_chat_started',
-            'video_chat_ended', 'video_chat_participants_invited', 'web_app_data', 'reply_markup'
+            "message_thread_id",
+            "from_user",
+            "sender_chat",
+            "forward_origin",
+            "is_topic_message",
+            "is_automatic_forward",
+            "reply_to_message",
+            "external_reply",
+            "qoute",
+            "via_bot",
+            "edit_date",
+            "has_protected_content",
+            "media_group_id",
+            "author_signature",
+            "text",
+            "entities",
+            "link_preview_options",
+            "animation",
+            "audio",
+            "document",
+            "photo",
+            "sticker",
+            "story",
+            "video",
+            "video_note",
+            "voice",
+            "caption",
+            "caption_entities",
+            "has_media_spoiler",
+            "contact",
+            "dice",
+            "game",
+            "poll",
+            "venue",
+            "location",
+            "new_chat_members",
+            "left_chat_member",
+            "new_chat_title",
+            "new_chat_photo",
+            "delete_chat_photo",
+            "group_chat_created",
+            "supergroup_chat_created",
+            "channel_chat_created",
+            "message_auto_delete_timer_changed",
+            "migrate_to_chat_id",
+            "migrate_from_chat_id",
+            "pinned_message",
+            "invoice",
+            "successful_payment",
+            "users_shared",
+            "chat_shared",
+            "connected_website",
+            "write_access_allowed",
+            "passport_data",
+            "proximity_alert_triggered",
+            "chat_background_set",
+            "forum_topic_created",
+            "forum_topic_edited",
+            "forum_topic_closed",
+            "forum_topic_reopened",
+            "general_forum_topic_hidden",
+            "general_forum_topic_unhidden",
+            "giveaway_created",
+            "giveaway",
+            "giveaway_winners",
+            "giveaway_completed",
+            "video_chat_scheduled",
+            "video_chat_started",
+            "video_chat_ended",
+            "video_chat_participants_invited",
+            "web_app_data",
+            "reply_markup",
         ]:
             return self.__universal_deprecation(item)
         else:
@@ -10863,7 +11453,8 @@ class BackgroundFill(ABC, JsonDeserializable):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
         if obj["type"] == "solid":
             return BackgroundFillSolid.de_json(obj)
@@ -10893,7 +11484,8 @@ class BackgroundFillSolid(BackgroundFill):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
         return cls(**obj)
 
@@ -10927,7 +11519,8 @@ class BackgroundFillGradient(BackgroundFill):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
         return cls(**obj)
 
@@ -10957,7 +11550,8 @@ class BackgroundFillFreeformGradient(BackgroundFill):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
         return cls(**obj)
 
@@ -10982,7 +11576,8 @@ class BackgroundType(ABC, JsonDeserializable):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
         if obj["type"] == "fill":
             return BackgroundTypeFill.de_json(obj)
@@ -11017,9 +11612,10 @@ class BackgroundTypeFill(BackgroundFill):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
-        obj['fill'] = BackgroundFill.de_json(obj['fill'])
+        obj["fill"] = BackgroundFill.de_json(obj["fill"])
         return cls(**obj)
 
     def __init__(self, type, fill, dark_theme_dimming, **kwargs):
@@ -11056,12 +11652,21 @@ class BackgroundTypeWallpaper(BackgroundFill):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
-        obj['document'] = Document.de_json(obj['document'])
+        obj["document"] = Document.de_json(obj["document"])
         return cls(**obj)
 
-    def __init__(self, type, document, dark_theme_dimming, is_blurred=None, is_moving=None, **kwargs):
+    def __init__(
+        self,
+        type,
+        document,
+        dark_theme_dimming,
+        is_blurred=None,
+        is_moving=None,
+        **kwargs,
+    ):
         self.type: str = type
         self.document: Document = document
         self.dark_theme_dimming: int = dark_theme_dimming
@@ -11100,12 +11705,22 @@ class BackgroundTypePattern(BackgroundFill):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
-        obj['document'] = Document.de_json(obj['document'])
+        obj["document"] = Document.de_json(obj["document"])
         return cls(**obj)
 
-    def __init__(self, type, document, fill, intensity, is_inverted=None, is_moving=None, **kwargs):
+    def __init__(
+        self,
+        type,
+        document,
+        fill,
+        intensity,
+        is_inverted=None,
+        is_moving=None,
+        **kwargs,
+    ):
         self.type: str = type
         self.document: Document = document
         self.fill: BackgroundFill = fill
@@ -11133,7 +11748,8 @@ class BackgroundTypeChatTheme(BackgroundFill):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
         return cls(**obj)
 
@@ -11158,9 +11774,10 @@ class ChatBackground(JsonDeserializable):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
-        obj['type'] = BackgroundType.de_json(obj['type'])
+        obj["type"] = BackgroundType.de_json(obj["type"])
         return cls(**obj)
 
     def __init__(self, type, **kwargs):
@@ -11168,6 +11785,7 @@ class ChatBackground(JsonDeserializable):
 
 
 class RevenueWithdrawalState(JsonDeserializable):
+    # noinspection PyUnresolvedReferences
     """
     This object describes the state of a revenue withdrawal operation. Currently, it can be one of
         RevenueWithdrawalStatePending
@@ -11185,7 +11803,8 @@ class RevenueWithdrawalState(JsonDeserializable):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
         if obj["type"] == "pending":
             return RevenueWithdrawalStatePending.de_json(obj)
@@ -11194,8 +11813,9 @@ class RevenueWithdrawalState(JsonDeserializable):
         elif obj["type"] == "failed":
             return RevenueWithdrawalStateFailed.de_json(obj)
         return None
-    
 
+
+# noinspection PyShadowingBuiltins
 class RevenueWithdrawalStatePending(RevenueWithdrawalState):
     """
     The withdrawal is in progress.
@@ -11214,11 +11834,13 @@ class RevenueWithdrawalStatePending(RevenueWithdrawalState):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
         return cls(**obj)
 
 
+# noinspection PyShadowingBuiltins
 class RevenueWithdrawalStateSucceeded(RevenueWithdrawalState):
     """
     The withdrawal succeeded.
@@ -11245,12 +11867,13 @@ class RevenueWithdrawalStateSucceeded(RevenueWithdrawalState):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
         return cls(**obj)
-    
 
-    
+
+# noinspection PyShadowingBuiltins
 class RevenueWithdrawalStateFailed(RevenueWithdrawalState):
     """
     The withdrawal failed and the transaction was refunded.
@@ -11269,12 +11892,14 @@ class RevenueWithdrawalStateFailed(RevenueWithdrawalState):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
         return cls(**obj)
 
 
 class TransactionPartner(JsonDeserializable):
+    # noinspection PyUnresolvedReferences
     """
     This object describes the source of a transaction, or its recipient for outgoing transactions. Currently, it can be one of
         TransactionPartnerFragment
@@ -11292,15 +11917,20 @@ class TransactionPartner(JsonDeserializable):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
         if obj["type"] == "fragment":
             return TransactionPartnerFragment.de_json(obj)
         elif obj["type"] == "user":
             return TransactionPartnerUser.de_json(obj)
+        elif obj["type"] == "telegram_ads":
+            return TransactionPartnerTelegramAds.de_json(obj)
         elif obj["type"] == "other":
             return TransactionPartnerOther.de_json(obj)
-        
+
+
+# noinspection PyShadowingBuiltins
 class TransactionPartnerFragment(TransactionPartner):
     """
     Describes a withdrawal transaction with Fragment.
@@ -11324,14 +11954,17 @@ class TransactionPartnerFragment(TransactionPartner):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
-        if 'withdrawal_state' in obj:
-            obj['withdrawal_state'] = RevenueWithdrawalState.de_json(obj['withdrawal_state'])
+        if "withdrawal_state" in obj:
+            obj["withdrawal_state"] = RevenueWithdrawalState.de_json(
+                obj["withdrawal_state"]
+            )
         return cls(**obj)
-    
 
 
+# noinspection PyShadowingBuiltins
 class TransactionPartnerUser(TransactionPartner):
     """
     Describes a transaction with a user.
@@ -11344,22 +11977,68 @@ class TransactionPartnerUser(TransactionPartner):
     :param user: Information about the user
     :type user: :class:`User`
 
+    :param invoice_payload: Optional, Bot-specified invoice payload
+    :type invoice_payload: :obj:`str`
+
+    :param paid_media: Optional. Information about the paid media bought by the user
+    :type paid_media: :obj:`list` of :class:`PaidMedia`
+
     :return: Instance of the class
     :rtype: :class:`TransactionPartnerUser`
     """
 
-    def __init__(self, type, user, **kwargs):
+    def __init__(
+        self,
+        type,
+        user,
+        invoice_payload=None,
+        paid_media: Optional[List[PaidMedia]] = None,
+        **kwargs,
+    ):
         self.type: str = type
         self.user: User = user
+        self.invoice_payload: Optional[str] = invoice_payload
+        self.paid_media: Optional[List[PaidMedia]] = paid_media
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
-        obj['user'] = User.de_json(obj['user'])
+        obj["user"] = User.de_json(obj["user"])
+        if "paid_media" in obj:
+            obj["paid_media"] = [
+                PaidMedia.de_json(media) for media in obj["paid_media"]
+            ]
         return cls(**obj)
-    
-        
+
+
+# noinspection PyShadowingBuiltins
+class TransactionPartnerTelegramAds(TransactionPartner):
+    """
+    Describes a transaction with Telegram Ads.
+
+    Telegram documentation: https://core.telegram.org/bots/api#transactionpartnertelegramads
+
+    :param type: Type of the transaction partner, always “telegram_ads”
+    :type type: :obj:`str`
+
+    :return: Instance of the class
+    :rtype: :class:`TransactionPartnerTelegramAds`
+    """
+
+    def __init__(self, type, **kwargs):
+        self.type: str = type
+
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None:
+            return None
+        obj = cls.check_json(json_string)
+        return obj
+
+
+# noinspection PyShadowingBuiltins
 class TransactionPartnerOther(TransactionPartner):
     """
     Describes a transaction with an unknown source or recipient.
@@ -11378,12 +12057,13 @@ class TransactionPartnerOther(TransactionPartner):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
         return cls(**obj)
-    
 
 
+# noinspection PyShadowingBuiltins
 class StarTransaction(JsonDeserializable):
     """
     Describes a Telegram Star transaction.
@@ -11411,14 +12091,15 @@ class StarTransaction(JsonDeserializable):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
-        if 'source' in obj:
-            obj['source'] = TransactionPartner.de_json(obj['source'])
-        if 'receiver' in obj:
-            obj['receiver'] = TransactionPartner.de_json(obj['receiver'])
+        if "source" in obj:
+            obj["source"] = TransactionPartner.de_json(obj["source"])
+        if "receiver" in obj:
+            obj["receiver"] = TransactionPartner.de_json(obj["receiver"])
         return cls(**obj)
-    
+
     def __init__(self, id, amount, date, source=None, receiver=None, **kwargs):
         self.id: str = id
         self.amount: int = amount
@@ -11443,10 +12124,369 @@ class StarTransactions(JsonDeserializable):
 
     @classmethod
     def de_json(cls, json_string):
-        if json_string is None: return None
+        if json_string is None:
+            return None
         obj = cls.check_json(json_string)
-        obj['transactions'] = [StarTransaction.de_json(transaction) for transaction in obj['transactions']]
+        obj["transactions"] = [
+            StarTransaction.de_json(transaction) for transaction in obj["transactions"]
+        ]
         return cls(**obj)
-    
+
     def __init__(self, transactions, **kwargs):
         self.transactions: List[StarTransaction] = transactions
+
+
+class PaidMedia(JsonDeserializable):
+    """
+    This object describes paid media. Currently, it can be one of
+
+        PaidMediaPreview
+        PaidMediaPhoto
+        PaidMediaVideo
+
+    Telegram documentation: https://core.telegram.org/bots/api#paidmedia
+
+    :return: Instance of the class
+    :rtype: :class:`PaidMediaPreview` or :class:`PaidMediaPhoto` or :class:`PaidMediaVideo`
+    """
+
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None:
+            return None
+        obj = cls.check_json(json_string)
+        if obj["type"] == "preview":
+            return PaidMediaPreview.de_json(obj)
+        elif obj["type"] == "photo":
+            return PaidMediaPhoto.de_json(obj)
+        elif obj["type"] == "video":
+            return PaidMediaVideo.de_json(obj)
+
+
+# noinspection PyShadowingBuiltins
+class PaidMediaPreview(PaidMedia):
+    """
+    The paid media isn't available before the payment.
+
+    Telegram documentation: https://core.telegram.org/bots/api#paidmediapreview
+
+    :param type: Type of the paid media, always “preview”
+    :type type: :obj:`str`
+
+    :param width: Optional. Media width as defined by the sender
+    :type width: :obj:`int`
+
+    :param height: Optional. Media height as defined by the sender
+    :type height: :obj:`int`
+
+    :param duration: Optional. Duration of the media in seconds as defined by the sender
+    :type duration: :obj:`int`
+
+    :return: Instance of the class
+    :rtype: :class:`PaidMediaPreview`
+    """
+
+    def __init__(self, type, width=None, height=None, duration=None, **kwargs):
+        self.type: str = type
+        self.width: Optional[int] = width
+        self.height: Optional[int] = height
+        self.duration: Optional[int] = duration
+
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None:
+            return None
+        obj = cls.check_json(json_string)
+        return cls(**obj)
+
+
+# noinspection PyShadowingBuiltins
+class PaidMediaPhoto(PaidMedia):
+    """
+    The paid media is a photo.
+
+    Telegram documentation: https://core.telegram.org/bots/api#paidmediaphoto
+
+    :param type: Type of the paid media, always “photo”
+    :type type: :obj:`str`
+
+    :param photo: The photo
+    :type photo: :obj:`list` of :class:`PhotoSize`
+
+    :return: Instance of the class
+    :rtype: :class:`PaidMediaPhoto`
+
+    """
+
+    def __init__(self, type, photo, **kwargs):
+        self.type: str = type
+        self.photo: List[PhotoSize] = photo
+
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None:
+            return None
+        obj = cls.check_json(json_string)
+
+        obj["photo"] = [PhotoSize.de_json(photo) for photo in obj["photo"]]
+        return cls(**obj)
+
+
+# noinspection PyShadowingBuiltins
+class PaidMediaVideo(PaidMedia):
+    """
+    The paid media is a video.
+
+    Telegram documentation: https://core.telegram.org/bots/api#paidmediavideo
+
+    :param type: Type of the paid media, always “video”
+    :type type: :obj:`str`
+
+    :param video: The video
+    :type video: :class:`Video`
+
+    :return: Instance of the class
+    :rtype: :class:`PaidMediaVideo`
+    """
+
+    def __init__(self, type, video, **kwargs):
+        self.type: str = type
+        self.video: Video = video
+
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None:
+            return None
+        obj = cls.check_json(json_string)
+        obj["video"] = Video.de_json(obj["video"])
+        return cls(**obj)
+
+
+class PaidMediaInfo(JsonDeserializable):
+    """
+    Describes the paid media added to a message.
+
+    Telegram documentation: https://core.telegram.org/bots/api#paidmediainfo
+
+    :param star_count: The number of Telegram Stars that must be paid to buy access to the media
+    :type star_count: :obj:`int`
+
+    :param paid_media: Information about the paid media
+    :type paid_media: :obj:`list` of :class:`PaidMedia`
+
+    :return: Instance of the class
+    :rtype: :class:`PaidMediaInfo`
+    """
+
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None:
+            return None
+        obj = cls.check_json(json_string)
+        obj["paid_media"] = [PaidMedia.de_json(media) for media in obj["paid_media"]]
+        return cls(**obj)
+
+    def __init__(self, star_count, paid_media, **kwargs):
+        self.star_count: int = star_count
+        self.paid_media: List[PaidMedia] = paid_media
+
+
+# noinspection PyShadowingBuiltins
+class InputPaidMedia(JsonSerializable):
+    """
+    This object describes the paid media to be sent. Currently, it can be one of
+        InputPaidMediaPhoto
+        InputPaidMediaVideo
+
+    Telegram documentation: https://core.telegram.org/bots/api#inputpaidmedia
+
+    :return: Instance of the class
+    :rtype: :class:`InputPaidMediaPhoto` or :class:`InputPaidMediaVideo`
+    """
+
+    def __init__(self, type: str, media: Union[str, InputFile], **kwargs):
+        self.type: str = type
+        self.media: Union[str, InputFile] = media
+
+        if service_utils.is_string(self.media):
+            self._media_name = ""
+            self._media_dic = self.media
+        else:
+            self._media_name = service_utils.generate_random_token()
+            self._media_dic = "attach://{0}".format(self._media_name)
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
+
+    def to_dict(self):
+        data = {"type": self.type, "media": self._media_dic}
+        return data
+
+
+class InputPaidMediaPhoto(InputPaidMedia):
+    """
+    The paid media to send is a photo.
+
+    Telegram documentation: https://core.telegram.org/bots/api#inputpaidmediaphoto
+
+    :param type: Type of the media, must be photo
+    :type type: :obj:`str`
+
+    :param media: File to send. Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for
+        Telegram to get a file from the Internet, or pass “attach://<file_attach_name>” to upload a new one using multipart/form-data
+        under <file_attach_name> name. More information on Sending Files »
+    :type media: :obj:`str`
+
+    :return: Instance of the class
+    :rtype: :class:`InputPaidMediaPhoto`
+    """
+
+    def __init__(self, media: Union[str, InputFile], **kwargs):
+        super().__init__(type="photo", media=media)
+
+
+class InputPaidMediaVideo(InputPaidMedia):
+    """
+    The paid media to send is a video.
+
+    Telegram documentation: https://core.telegram.org/bots/api#inputpaidmediavideo
+
+    :param type: Type of the media, must be video
+    :type type: :obj:`str`
+
+    :param media: File to send. Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for
+        Telegram to get a file from the Internet, or pass “attach://<file_attach_name>” to upload a new one using multipart/form-data
+        under <file_attach_name> name. More information on Sending Files »
+    :type media: :obj:`str`
+
+    :param thumbnail: Optional. Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side.
+        The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320.
+        Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file,
+        so you can pass “attach://<file_attach_name>” if the thumbnail was uploaded using multipart/form-data under <file_attach_name>.
+        More information on Sending Files »
+    :type thumbnail: :class:`InputFile`
+
+    :param width: Optional. Video width
+    :type width: :obj:`int`
+
+    :param height: Optional. Video height
+    :type height: :obj:`int`
+
+    :param duration: Optional. Video duration in seconds
+    :type duration: :obj:`int`
+
+    :param supports_streaming: Optional. Pass True if the uploaded video is suitable for streaming
+    :type supports_streaming: :obj:`bool`
+
+    :return: Instance of the class
+    :rtype: :class:`InputPaidMediaVideo`
+
+    """
+
+    def __init__(
+        self,
+        media: Union[str, InputFile],
+        thumbnail: Optional[InputFile] = None,
+        width: Optional[int] = None,
+        height: Optional[int] = None,
+        duration: Optional[int] = None,
+        supports_streaming: Optional[bool] = None,
+        **kwargs,
+    ):
+        super().__init__(type="video", media=media)
+        self.thumbnail: Optional[Union[str, InputFile]] = thumbnail
+        self.width: Optional[int] = width
+        self.height: Optional[int] = height
+        self.duration: Optional[int] = duration
+        self.supports_streaming: Optional[bool] = supports_streaming
+
+    def to_dict(self):
+        data = super().to_dict()
+        if self.thumbnail:
+            data["thumbnail"] = self.thumbnail
+        if self.width:
+            data["width"] = self.width
+        if self.height:
+            data["height"] = self.height
+        if self.duration:
+            data["duration"] = self.duration
+        if self.supports_streaming is not None:
+            data["supports_streaming"] = self.supports_streaming
+        return data
+
+
+class RefundedPayment(JsonDeserializable):
+    """
+    This object contains basic information about a refunded payment.
+
+    Telegram documentation: https://core.telegram.org/bots/api#refundedpayment
+
+    :param currency: Three-letter ISO 4217 currency code, or “XTR” for payments in Telegram Stars. Currently, always “XTR”
+    :type currency: :obj:`str`
+
+    :param total_amount: Total refunded price in the smallest units of the currency (integer, not float/double). For example, for a price of US$ 1.45, total_amount = 145. See the exp parameter in currencies.json, it shows the number of digits past the decimal point for each currency (2 for the majority of currencies).
+    :type total_amount: :obj:`int`
+
+    :param invoice_payload: Bot-specified invoice payload
+    :type invoice_payload: :obj:`str`
+
+    :param telegram_payment_charge_id: Telegram payment identifier
+    :type telegram_payment_charge_id: :obj:`str`
+
+    :param provider_payment_charge_id: Optional. Provider payment identifier
+    :type provider_payment_charge_id: :obj:`str`
+
+    :return: Instance of the class
+    :rtype: :class:`RefundedPayment`
+    """
+
+    def __init__(
+        self,
+        currency,
+        total_amount,
+        invoice_payload,
+        telegram_payment_charge_id,
+        provider_payment_charge_id=None,
+        **kwargs,
+    ):
+        self.currency: str = currency
+        self.total_amount: int = total_amount
+        self.invoice_payload: str = invoice_payload
+        self.telegram_payment_charge_id: str = telegram_payment_charge_id
+        self.provider_payment_charge_id: Optional[str] = provider_payment_charge_id
+
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None:
+            return None
+        obj = cls.check_json(json_string)
+        return cls(**obj)
+
+
+class PaidMediaPurchased(JsonDeserializable):
+    """
+    This object contains information about a paid media purchase.
+
+    Telegram documentation: https://core.telegram.org/bots/api#paidmediapurchased
+
+    :param from_user: User who purchased the media
+    :type from_user: :class:`User`
+
+    :param paid_media_payload: Bot-specified paid media payload
+    :type paid_media_payload: :obj:`str`
+
+    :return: Instance of the class
+    :rtype: :class:`PaidMediaPurchased`
+    """
+
+    def __init__(self, from_user, paid_media_payload, **kwargs):
+        self.from_user: User = from_user
+        self.paid_media_payload: str = paid_media_payload
+
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None:
+            return None
+        obj = cls.check_json(json_string)
+        obj["from_user"] = User.de_json(obj["from_user"])
+        return cls(**obj)

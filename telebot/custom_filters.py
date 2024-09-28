@@ -2,8 +2,8 @@ from abc import ABC
 from typing import Optional, Union
 
 from telebot import types
-from telebot.handler_backends import State
 
+from telebot.states import resolve_context
 
 class SimpleCustomFilter(ABC):
     """
@@ -230,7 +230,7 @@ class TextMatchFilter(AdvancedCustomFilter):
         """
         if isinstance(text, TextFilter):
             return text.check(message)
-        elif type(text) is list:
+        elif isinstance(text, list):
             return message.text in text
         else:
             return text == message.text
@@ -330,7 +330,7 @@ class ForwardFilter(SimpleCustomFilter):
         """
         :meta private:
         """
-        return message.forward_date is not None
+        return message.forward_origin is not None
 
 
 class IsReplyFilter(SimpleCustomFilter):
@@ -372,7 +372,7 @@ class LanguageFilter(AdvancedCustomFilter):
         """
         :meta private:
         """
-        if type(text) is list:
+        if isinstance(text, list):
             return message.from_user.language_code in text
         else:
             return message.from_user.language_code == text
@@ -427,19 +427,11 @@ class StateFilter(AdvancedCustomFilter):
         """
         :meta private:
         """
-        if text == "*":
-            return True
+        
+        chat_id, user_id, business_connection_id, bot_id, message_thread_id = resolve_context(message, self.bot.bot_id)
 
-        # needs to work with callbackquery
-        if isinstance(message, types.Message):
-            chat_id = message.chat.id
-            user_id = message.from_user.id
-
-        if isinstance(message, types.CallbackQuery):
-
-            chat_id = message.message.chat.id
-            user_id = message.from_user.id
-            message = message.message
+        if chat_id is None:
+            chat_id = user_id # May change in future
 
         if isinstance(text, list):
             new_text = []
@@ -450,21 +442,24 @@ class StateFilter(AdvancedCustomFilter):
             text = new_text
         elif isinstance(text, State):
             text = text.name
+        
+        user_state = self.bot.current_states.get_state(
+            chat_id=chat_id,
+            user_id=user_id,
+            business_connection_id=business_connection_id,
+            bot_id=bot_id,
+            message_thread_id=message_thread_id
+        )
 
-        if message.chat.type in ["group", "supergroup"]:
-            group_state = self.bot.current_states.get_state(chat_id, user_id)
-            if group_state == text:
-                return True
-            elif type(text) is list and group_state in text:
-                return True
+        # CHANGED BEHAVIOUR
+        if text == "*" and user_state is not None:
+            return True
 
-        else:
-            user_state = self.bot.current_states.get_state(chat_id, user_id)
-            if user_state == text:
-                return True
-            elif type(text) is list and user_state in text:
-                return True
-
+        if user_state == text:
+            return True
+        elif type(text) is list and user_state in text:
+            return True
+        return False
 
 class IsDigitFilter(SimpleCustomFilter):
     """

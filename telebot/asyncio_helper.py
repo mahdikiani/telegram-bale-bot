@@ -169,6 +169,8 @@ def _prepare_data(params=None, files=None):
             if isinstance(f, tuple):
                 if len(f) == 2:
                     file_name, file = f
+                    if isinstance(file, types.InputFile):
+                        file = file.file
                 else:
                     raise ValueError(
                         "Tuple must have exactly 2 elements: filename, fileobj"
@@ -373,7 +375,7 @@ async def send_message(
     if message_effect_id:
         params['message_effect_id'] = message_effect_id
     
-    return await _process_request(token, method_name, params=params)
+    return await _process_request(token, method_name, params=params, method='post')
 
 
 # methods
@@ -606,6 +608,40 @@ async def send_photo(
         payload['show_caption_above_media'] = show_caption_above_media
     return await _process_request(token, method_url, params=payload, files=files, method='post')
 
+async def send_paid_media(
+        token, chat_id, star_count, media,
+        caption=None, parse_mode=None, caption_entities=None, show_caption_above_media=None,
+        disable_notification=None, protect_content=None, reply_parameters=None, reply_markup=None,
+        business_connection_id=None, payload=None):
+    method_url = r'sendPaidMedia'
+    media_json, files = convert_input_media_array(media)
+    _payload = {'chat_id': chat_id, 'star_count': star_count, 'media': media_json}
+    # USE _payload for request payload
+    if caption:
+        _payload['caption'] = caption
+    if parse_mode:
+        _payload['parse_mode'] = parse_mode
+    if caption_entities:
+        _payload['caption_entities'] = json.dumps(types.MessageEntity.to_list_of_dicts(caption_entities))
+    if show_caption_above_media is not None:
+        _payload['show_caption_above_media'] = show_caption_above_media
+    if disable_notification is not None:
+        _payload['disable_notification'] = disable_notification
+    if protect_content is not None:
+        _payload['protect_content'] = protect_content
+    if reply_parameters is not None:
+        _payload['reply_parameters'] = reply_parameters.to_json()
+    if reply_markup:
+        _payload['reply_markup'] = _convert_markup(reply_markup)
+    if business_connection_id:
+        _payload['business_connection_id'] = business_connection_id
+    if payload:
+        _payload['payload'] = payload
+        
+    return await _process_request(
+        token, method_url, params=_payload,
+        method='post' if files else 'get',
+        files=files if files else None)
 
 async def send_media_group(
         token, chat_id, media,
@@ -1288,6 +1324,28 @@ async def edit_chat_invite_link(
     return await _process_request(token, method_url, params=payload, method="post")
 
 
+async def create_chat_subscription_invite_link(token, chat_id, subscription_period, subscription_price, name=None):
+    method_url = 'createChatSubscriptionInviteLink'
+    payload = {
+        'chat_id': chat_id,
+        'subscription_period': subscription_period,
+        'subscription_price': subscription_price
+    }
+    if name:
+        payload['name'] = name
+    return await _process_request(token, method_url, params=payload, method='post')
+
+async def edit_chat_subscription_invite_link(token, chat_id, invite_link, name=None):
+    method_url = 'editChatSubscriptionInviteLink'
+    payload = {
+        'chat_id': chat_id,
+        'invite_link': invite_link
+    }
+    if name:
+        payload['name'] = name
+    return await _process_request(token, method_url, params=payload, method='post')
+
+
 async def revoke_chat_invite_link(token, chat_id, invite_link):
     method_url = "revokeChatInviteLink"
     payload = {"chat_id": chat_id, "invite_link": invite_link}
@@ -1477,20 +1535,24 @@ async def set_chat_description(token, chat_id, description):
     return await _process_request(token, method_url, params=payload, method="post")
 
 
-async def pin_chat_message(token, chat_id, message_id, disable_notification=None):
-    method_url = "pinChatMessage"
-    payload = {"chat_id": chat_id, "message_id": message_id}
+async def pin_chat_message(token, chat_id, message_id, disable_notification=None, business_connection_id=None):
+    method_url = 'pinChatMessage'
+    payload = {'chat_id': chat_id, 'message_id': message_id}
     if disable_notification is not None:
-        payload["disable_notification"] = disable_notification
-    return await _process_request(token, method_url, params=payload, method="post")
+        payload['disable_notification'] = disable_notification
+    if business_connection_id:
+        payload['business_connection_id'] = business_connection_id
+    return await _process_request(token, method_url, params=payload, method='post')
 
 
-async def unpin_chat_message(token, chat_id, message_id):
-    method_url = "unpinChatMessage"
-    payload = {"chat_id": chat_id}
+async def unpin_chat_message(token, chat_id, message_id, business_connection_id=None):
+    method_url = 'unpinChatMessage'
+    payload = {'chat_id': chat_id}
     if message_id:
-        payload["message_id"] = message_id
-    return await _process_request(token, method_url, params=payload, method="post")
+        payload['message_id'] = message_id
+    if business_connection_id:
+        payload['business_connection_id'] = business_connection_id
+    return await _process_request(token, method_url, params=payload, method='post')
 
 
 async def unpin_all_chat_messages(token, chat_id):
@@ -1501,8 +1563,9 @@ async def unpin_all_chat_messages(token, chat_id):
 
 # Updating messages
 
-async def edit_message_text(token, text, chat_id=None, message_id=None, inline_message_id=None, parse_mode=None,
-                      entities = None, reply_markup=None, link_preview_options=None, business_connection_id=None):
+async def edit_message_text(
+        token, text, chat_id=None, message_id=None, inline_message_id=None, parse_mode=None, entities = None,
+        reply_markup=None, link_preview_options=None, business_connection_id=None, timeout=None):
     method_url = r'editMessageText'
     payload = {'text': text}
     if chat_id:
@@ -1521,11 +1584,14 @@ async def edit_message_text(token, text, chat_id=None, message_id=None, inline_m
         payload['link_preview_options'] = link_preview_options.to_json()
     if business_connection_id:
         payload['business_connection_id'] = business_connection_id
+    if timeout:
+        payload['timeout'] = timeout
     return await _process_request(token, method_url, params=payload, method='post')
 
 
-async def edit_message_caption(token, caption, chat_id=None, message_id=None, inline_message_id=None,
-                         parse_mode=None, caption_entities=None,reply_markup=None, show_caption_above_media=None, business_connection_id=None):
+async def edit_message_caption(
+        token, caption, chat_id=None, message_id=None, inline_message_id=None, parse_mode=None, caption_entities=None,
+        reply_markup=None, show_caption_above_media=None, business_connection_id=None, timeout=None):
     method_url = r'editMessageCaption'
     payload = {'caption': caption}
     if chat_id:
@@ -1546,10 +1612,14 @@ async def edit_message_caption(token, caption, chat_id=None, message_id=None, in
         payload['show_caption_above_media'] = show_caption_above_media
     if business_connection_id:
         payload['business_connection_id'] = business_connection_id
+    if timeout:
+        payload['timeout'] = timeout
     return await _process_request(token, method_url, params=payload, method='post')
 
 
-async def edit_message_media(token, media, chat_id=None, message_id=None, inline_message_id=None, reply_markup=None, business_connection_id=None):
+async def edit_message_media(
+        token, media, chat_id=None, message_id=None, inline_message_id=None, reply_markup=None,
+        business_connection_id=None, timeout=None):
     method_url = r'editMessageMedia'
     media_json, file = await convert_input_media(media)
     payload = {"media": media_json}
@@ -1563,10 +1633,14 @@ async def edit_message_media(token, media, chat_id=None, message_id=None, inline
         payload['reply_markup'] = await _convert_markup(reply_markup)
     if business_connection_id:
         payload['business_connection_id'] = business_connection_id
+    if timeout:
+        payload['timeout'] = timeout
     return await _process_request(token, method_url, params=payload, files=file, method='post' if file else 'get')
 
 
-async def edit_message_reply_markup(token, chat_id=None, message_id=None, inline_message_id=None, reply_markup=None, business_connection_id=None):
+async def edit_message_reply_markup(
+        token, chat_id=None, message_id=None, inline_message_id=None, reply_markup=None, business_connection_id=None,
+        timeout=None):
     method_url = r'editMessageReplyMarkup'
     payload = {}
     if chat_id:
@@ -1579,6 +1653,8 @@ async def edit_message_reply_markup(token, chat_id=None, message_id=None, inline
         payload['reply_markup'] = await _convert_markup(reply_markup)
     if business_connection_id:
         payload['business_connection_id'] = business_connection_id
+    if timeout:
+        payload['timeout'] = timeout
     return await _process_request(token, method_url, params=payload, method='post')
 
 
@@ -1724,6 +1800,7 @@ async def send_invoice(
     :param protect_content: Protects the contents of the sent message from forwarding and saving
     :param message_thread_id: Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
     :param reply_parameters: A JSON-serialized object for an inline keyboard. If empty, one 'Pay total price' button will be shown. If not empty, the first button must be a Pay button.
+    :param message_effect_id: Unique identifier of the message effect to be added to the message; for private chats only
     :return:
     """
     method_url = r'sendInvoice'
@@ -2287,7 +2364,7 @@ async def convert_input_media_array(array):
     media = []
     files = {}
     for input_media in array:
-        if isinstance(input_media, types.InputMedia):
+        if isinstance(input_media, types.InputMedia) or isinstance(input_media, types.InputPaidMedia):
             media_dict = input_media.to_dict()
             if media_dict["media"].startswith("attach://"):
                 key = media_dict["media"].replace("attach://", "")
