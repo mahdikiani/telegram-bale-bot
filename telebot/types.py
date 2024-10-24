@@ -3055,20 +3055,11 @@ class KeyboardButtonRequestChat(Dictionaryable):
     :rtype: :class:`telebot.types.KeyboardButtonRequestChat`
     """
 
-    def __init__(
-        self,
-        request_id: int,
-        chat_is_channel: bool,
-        chat_is_forum: Optional[bool] = None,
-        chat_has_username: Optional[bool] = None,
-        chat_is_created: Optional[bool] = None,
-        user_administrator_rights: Optional[ChatAdministratorRights] = None,
-        bot_administrator_rights: Optional[ChatAdministratorRights] = None,
-        bot_is_member: Optional[bool] = None,
-        request_title: Optional[str] = None,
-        request_photo: Optional[bool] = None,
-        request_username: Optional[bool] = None,
-    ):
+    def __init__(self, request_id: int, chat_is_channel: bool, chat_is_forum: Optional[bool]=None,
+                 chat_has_username: Optional[bool]=None, chat_is_created: Optional[bool]=None,
+                 user_administrator_rights: Optional[ChatAdministratorRights]=None,
+                 bot_administrator_rights: Optional[ChatAdministratorRights]=None, bot_is_member: Optional[bool]=None,
+                 request_title: Optional[bool]=None, request_photo: Optional[bool]=None, request_username: Optional[bool]=None):
         self.request_id: int = request_id
         self.chat_is_channel: bool = chat_is_channel
         self.chat_is_forum: Optional[bool] = chat_is_forum
@@ -3081,7 +3072,7 @@ class KeyboardButtonRequestChat(Dictionaryable):
             bot_administrator_rights
         )
         self.bot_is_member: Optional[bool] = bot_is_member
-        self.request_title: Optional[str] = request_title
+        self.request_title: Optional[bool] = request_title
         self.request_photo: Optional[bool] = request_photo
         self.request_username: Optional[bool] = request_username
 
