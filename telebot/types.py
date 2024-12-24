@@ -4,6 +4,7 @@ from __future__ import annotations
 from io import IOBase
 import logging
 import os
+import traceback
 from pathlib import Path
 from typing import Dict, List, Optional, Union, Any, Tuple
 from abc import ABC
@@ -19,8 +20,19 @@ from telebot.formatting import apply_html_entities
 
 
 DISABLE_KEYLEN_ERROR = False
+DEPRECATION_STACK_SHOW_DEPTH = 0
 
 logger = logging.getLogger("TeleBot")
+
+
+
+def log_deprecation_warning(warning_message, logging_level=logging.WARNING):
+    """
+    Logs a deprecation warning message.
+    """
+    logger.log(logging_level, warning_message)
+    if DEPRECATION_STACK_SHOW_DEPTH:
+        logger.log(logging_level, "".join(traceback.format_stack(limit=DEPRECATION_STACK_SHOW_DEPTH)))
 
 
 class JsonSerializable(object):
@@ -1761,53 +1773,39 @@ class Message(JsonDeserializable):
 
     @property
     def voice_chat_scheduled(self):
-        logger.warning(
-            'The parameter "voice_chat_scheduled" is deprecated, use "video_chat_scheduled" instead'
-        )
+        log_deprecation_warning('The parameter "voice_chat_scheduled" is deprecated, use "video_chat_scheduled" instead')
         return self.video_chat_scheduled
 
     @property
     def voice_chat_started(self):
-        logger.warning(
-            'The parameter "voice_chat_started" is deprecated, use "video_chat_started" instead'
-        )
+        log_deprecation_warning('The parameter "voice_chat_started" is deprecated, use "video_chat_started" instead')
         return self.video_chat_started
 
     @property
     def voice_chat_ended(self):
-        logger.warning(
-            'The parameter "voice_chat_ended" is deprecated, use "video_chat_ended" instead'
-        )
+        log_deprecation_warning('The parameter "voice_chat_ended" is deprecated, use "video_chat_ended" instead')
         return self.video_chat_ended
 
     @property
     def voice_chat_participants_invited(self):
-        logger.warning(
-            'The parameter "voice_chat_participants_invited" is deprecated, use "video_chat_participants_invited" instead'
-        )
+        log_deprecation_warning('The parameter "voice_chat_participants_invited" is deprecated, use "video_chat_participants_invited" instead')
         return self.video_chat_participants_invited
 
     @property
     def new_chat_member(self):
-        logger.warning(
-            'The parameter "new_chat_member" is deprecated, use "new_chat_members" instead'
-        )
+        log_deprecation_warning('The parameter "new_chat_member" is deprecated, use "new_chat_members" instead')
         return None
 
     @property
     def forward_from(self):
-        logger.warning(
-            'The parameter "forward_from" is deprecated, use "forward_origin" instead'
-        )
+        log_deprecation_warning('The parameter "forward_from" is deprecated, use "forward_origin" instead')
         if self.forward_origin and isinstance(self.forward_origin, MessageOriginUser):
             return self.forward_origin.sender_user
         return None
 
     @property
     def forward_from_chat(self):
-        logger.warning(
-            'The parameter "forward_from_chat" is deprecated, use "forward_origin" instead'
-        )
+        log_deprecation_warning('The parameter "forward_from_chat" is deprecated, use "forward_origin" instead')
         if self.forward_origin and isinstance(self.forward_origin, MessageOriginChat):
             return self.forward_origin.sender_chat
         elif self.forward_origin and isinstance(
@@ -1818,20 +1816,14 @@ class Message(JsonDeserializable):
 
     @property
     def forward_from_message_id(self):
-        logger.warning(
-            'The parameter "forward_from_message_id" is deprecated, use "forward_origin" instead'
-        )
-        if self.forward_origin and isinstance(
-            self.forward_origin, MessageOriginChannel
-        ):
+        log_deprecation_warning('The parameter "forward_from_message_id" is deprecated, use "forward_origin" instead')
+        if self.forward_origin and isinstance(self.forward_origin, MessageOriginChannel):
             return self.forward_origin.message_id
         return None
 
     @property
     def forward_signature(self):
-        logger.warning(
-            'The parameter "forward_signature" is deprecated, use "forward_origin" instead'
-        )
+        log_deprecation_warning('The parameter "forward_signature" is deprecated, use "forward_origin" instead')
         if self.forward_origin and isinstance(self.forward_origin, MessageOriginChat):
             return self.forward_origin.author_signature
         elif self.forward_origin and isinstance(
@@ -1842,29 +1834,21 @@ class Message(JsonDeserializable):
 
     @property
     def forward_sender_name(self):
-        logger.warning(
-            'The parameter "forward_sender_name" is deprecated, use "forward_origin" instead'
-        )
-        if self.forward_origin and isinstance(
-            self.forward_origin, MessageOriginHiddenUser
-        ):
+        log_deprecation_warning('The parameter "forward_sender_name" is deprecated, use "forward_origin" instead')
+        if self.forward_origin and isinstance(self.forward_origin, MessageOriginHiddenUser):
             return self.forward_origin.sender_user_name
         return None
 
     @property
     def forward_date(self):
-        logger.warning(
-            'The parameter "forward_date" is deprecated, use "forward_origin" instead'
-        )
+        log_deprecation_warning('The parameter "forward_date" is deprecated, use "forward_origin" instead')
         if self.forward_origin:
             return self.forward_origin.date
         return None
 
     @property
     def user_shared(self):
-        logger.warning(
-            'The parameter "user_shared" is deprecated, use "users_shared" instead'
-        )
+        log_deprecation_warning('The parameter "user_shared" is deprecated, use "users_shared" instead')
         return self.users_shared
 
     @property
@@ -1887,11 +1871,10 @@ class MessageEntity(Dictionaryable, JsonSerializable, JsonDeserializable):
 
     Telegram Documentation: https://core.telegram.org/bots/api#messageentity
 
-    :param type: Type of the entity. Currently, can be “mention” (@username), “hashtag” (#hashtag), “cashtag” ($USD),
-        “bot_command” (/start@jobs_bot),“url” (https://telegram.org), “email” (do-not-reply@telegram.org), “phone_number” (+1-212-555-0123),
-        “bold” (bold text), “italic” (italic text), “underline” (underlined text), “strikethrough” (strikethrough text),
-        “spoiler” (spoiler message), “blockquote” (block quotation), “expandable_blockquote” (collapsed-by-default block quotation),
-        “code” (monowidth string), “pre” (monowidth block), “text_link” (for clickable text URLs),
+    :param type: Type of the entity. Currently, can be “mention” (@username), “hashtag” (#hashtag or #hashtag@chatusername), “cashtag” ($USD or $USD@chatusername),
+        “bot_command” (/start@jobs_bot), “url” (https://telegram.org), “email” (do-not-reply@telegram.org), “phone_number” (+1-212-555-0123), “bold” (bold text),
+        “italic” (italic text), “underline” (underlined text), “strikethrough” (strikethrough text), “spoiler” (spoiler message), “blockquote” (block quotation),
+        “expandable_blockquote” (collapsed-by-default block quotation), “code” (monowidth string), “pre” (monowidth block), “text_link” (for clickable text URLs),
         “text_mention” (for users without usernames), “custom_emoji” (for inline custom emoji stickers)
     :type type: :obj:`str`
 
@@ -2126,7 +2109,7 @@ class Audio(JsonDeserializable):
 
     @property
     def thumb(self) -> Optional[PhotoSize]:
-        logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
+        log_deprecation_warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
 
@@ -2242,7 +2225,7 @@ class Document(JsonDeserializable):
 
     @property
     def thumb(self) -> Optional[PhotoSize]:
-        logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
+        log_deprecation_warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
 
@@ -2320,7 +2303,7 @@ class Video(JsonDeserializable):
 
     @property
     def thumb(self) -> Optional[PhotoSize]:
-        logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
+        log_deprecation_warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
 
@@ -2381,7 +2364,7 @@ class VideoNote(JsonDeserializable):
 
     @property
     def thumb(self) -> Optional[PhotoSize]:
-        logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
+        log_deprecation_warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
 
@@ -2989,21 +2972,10 @@ class KeyboardButtonRequestUser(KeyboardButtonRequestUsers):
     """Deprecated. Use KeyboardButtonRequestUsers instead."""
 
     def __init__(
-        self,
-        request_id: int,
-        user_is_bot: Optional[bool] = None,
-        user_is_premium: Optional[bool] = None,
-        max_quantity: Optional[int] = None,
-    ) -> None:
-        logger.warning(
-            'The parameter "voice_chat_scheduled" is deprecated, use "video_chat_scheduled" instead'
-        )
-        super().__init__(
-            request_id,
-            user_is_bot=user_is_bot,
-            user_is_premium=user_is_premium,
-            max_quantity=max_quantity,
-        )
+            self, request_id: int, user_is_bot: Optional[bool]=None, user_is_premium: Optional[bool]=None,
+            max_quantity: Optional[int]=None) -> None:
+        log_deprecation_warning('The class "KeyboardButtonRequestUser" is deprecated, use "KeyboardButtonRequestUsers" instead')
+        super().__init__(request_id, user_is_bot=user_is_bot, user_is_premium=user_is_premium, max_quantity=max_quantity)
 
 
 class KeyboardButtonRequestChat(Dictionaryable):
@@ -3159,9 +3131,7 @@ class KeyboardButton(Dictionaryable, JsonSerializable):
         self.request_chat: Optional[KeyboardButtonRequestChat] = request_chat
         self.request_users: Optional[KeyboardButtonRequestUsers] = request_users
         if request_user is not None:
-            logger.warning(
-                'The parameter "request_user" is deprecated, use "request_users" instead'
-            )
+            log_deprecation_warning('The parameter "request_user" is deprecated, use "request_users" instead')
             if self.request_users is None:
                 # noinspection PyTypeChecker
                 self.request_users = request_user
@@ -3360,6 +3330,9 @@ class InlineKeyboardButton(Dictionaryable, JsonSerializable, JsonDeserializable)
         the first row and can only be used in invoice messages.
     :type pay: :obj:`bool`
 
+    :param copy_text: Optional. Description of the button that copies the specified text to the clipboard.
+    :type copy_text: :class:`telebot.types.CopyTextButton`
+
     :return: Instance of the class
     :rtype: :class:`telebot.types.InlineKeyboardButton`
     """
@@ -3369,33 +3342,21 @@ class InlineKeyboardButton(Dictionaryable, JsonSerializable, JsonDeserializable)
         if json_string is None:
             return None
         obj = cls.check_json(json_string)
-        if "login_url" in obj:
-            obj["login_url"] = LoginUrl.de_json(obj.get("login_url"))
-        if "web_app" in obj:
-            obj["web_app"] = WebAppInfo.de_json(obj.get("web_app"))
-        if "switch_inline_query_chosen_chat" in obj:
-            obj["switch_inline_query_chosen_chat"] = (
-                SwitchInlineQueryChosenChat.de_json(
-                    obj.get("switch_inline_query_chosen_chat")
-                )
-            )
-
+        if 'login_url' in obj:
+            obj['login_url'] = LoginUrl.de_json(obj.get('login_url'))
+        if 'web_app' in obj:
+            obj['web_app'] = WebAppInfo.de_json(obj.get('web_app'))
+        if 'switch_inline_query_chosen_chat' in obj:
+            obj['switch_inline_query_chosen_chat'] = SwitchInlineQueryChosenChat.de_json(obj.get('switch_inline_query_chosen_chat'))
+        if 'copy_text' in obj:
+            obj['copy_text'] = CopyTextButton.de_json(obj.get('copy_text'))
+        
         return cls(**obj)
 
-    def __init__(
-        self,
-        text: str,
-        url: Optional[str] = None,
-        callback_data: Optional[str] = None,
-        web_app: Optional[WebAppInfo] = None,
-        switch_inline_query: Optional[str] = None,
-        switch_inline_query_current_chat: Optional[str] = None,
-        switch_inline_query_chosen_chat: Optional[SwitchInlineQueryChosenChat] = None,
-        callback_game=None,
-        pay: Optional[bool] = None,
-        login_url: Optional[LoginUrl] = None,
-        **kwargs,
-    ):
+    def __init__(self, text: str, url: Optional[str]=None, callback_data: Optional[str]=None, web_app: Optional[WebAppInfo]=None,
+            switch_inline_query: Optional[str]=None, switch_inline_query_current_chat: Optional[str]=None,
+            switch_inline_query_chosen_chat: Optional[SwitchInlineQueryChosenChat]=None, callback_game=None, pay: Optional[bool]=None,
+            login_url: Optional[LoginUrl]=None, copy_text: Optional[CopyTextButton]=None, **kwargs):
         self.text: str = text
         self.url: Optional[str] = url
         self.callback_data: Optional[str] = callback_data
@@ -3410,6 +3371,7 @@ class InlineKeyboardButton(Dictionaryable, JsonSerializable, JsonDeserializable)
         self.callback_game = callback_game  # Not Implemented
         self.pay: Optional[bool] = pay
         self.login_url: Optional[LoginUrl] = login_url
+        self.copy_text: Optional[CopyTextButton] = copy_text
 
     def to_json(self):
         return json.dumps(self.to_dict())
@@ -3435,9 +3397,9 @@ class InlineKeyboardButton(Dictionaryable, JsonSerializable, JsonDeserializable)
         if self.login_url is not None:
             json_dict["login_url"] = self.login_url.to_dict()
         if self.switch_inline_query_chosen_chat is not None:
-            json_dict["switch_inline_query_chosen_chat"] = (
-                self.switch_inline_query_chosen_chat.to_dict()
-            )
+            json_dict['switch_inline_query_chosen_chat'] = self.switch_inline_query_chosen_chat.to_dict()
+        if self.copy_text is not None:
+            json_dict['copy_text'] = self.copy_text.to_dict()
         return json_dict
 
 
@@ -3735,9 +3697,7 @@ class ChatMember(JsonDeserializable):
 
     @property
     def can_manage_voice_chats(self):
-        logger.warning(
-            'The parameter "can_manage_voice_chats" is deprecated. Use "can_manage_video_chats" instead.'
-        )
+        log_deprecation_warning('The parameter "can_manage_voice_chats" is deprecated. Use "can_manage_video_chats" instead.')
         return self.can_manage_video_chats
 
 
@@ -4082,9 +4042,7 @@ class ChatPermissions(JsonDeserializable, JsonSerializable, Dictionaryable):
         if kwargs.get("de_json", False) and can_send_media_messages is not None:
             # Telegram passes can_send_media_messages in Chat.permissions. Temporary created parameter "de_json" allows avoid
             # deprection warning and individual parameters overriding.
-            logger.warning(
-                'The parameter "can_send_media_messages" is deprecated. Use individual parameters like "can_send_audios", "can_send_documents" etc.'
-            )
+            log_deprecation_warning('The parameter "can_send_media_messages" is deprecated. Use individual parameters like "can_send_audios", "can_send_documents" etc.')
             self.can_send_audios: Optional[bool] = can_send_media_messages
             self.can_send_documents: Optional[bool] = can_send_media_messages
             self.can_send_photos: Optional[bool] = can_send_media_messages
@@ -4486,14 +4444,10 @@ class InputTextMessageContent(Dictionaryable):
         self.entities: Optional[List[MessageEntity]] = entities
         self.link_preview_options: Optional[LinkPreviewOptions] = link_preview_options
         if disable_web_page_preview is not None:
-            logger.warning(
-                'The parameter "disable_web_page_preview" is deprecated. Use "link_preview_options" instead.'
-            )
+            log_deprecation_warning('The parameter "disable_web_page_preview" is deprecated. Use "link_preview_options" instead.')
 
             if link_preview_options:
-                logger.warning(
-                    'Both "link_preview_options" and "disable_web_page_preview" parameters are set: conflicting, "disable_web_page_preview" is deprecated'
-                )
+                log_deprecation_warning('Both "link_preview_options" and "disable_web_page_preview" parameters are set: conflicting, "disable_web_page_preview" is deprecated')
             else:
                 self.link_preview_options: Optional[LinkPreviewOptions] = (
                     LinkPreviewOptions(is_disabled=disable_web_page_preview)
@@ -5085,23 +5039,17 @@ class InlineQueryResultArticle(InlineQueryResultBase):
 
     @property
     def thumb_url(self) -> str:
-        logger.warning(
-            'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_url" is deprecated, use "thumbnail_url" instead')
         return self.thumbnail_url
 
     @property
     def thumb_width(self) -> int:
-        logger.warning(
-            'The parameter "thumb_width" is deprecated, use "thumbnail_width" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_width" is deprecated, use "thumbnail_width" instead')
         return self.thumbnail_width
 
     @property
     def thumb_height(self) -> int:
-        logger.warning(
-            'The parameter "thumb_height" is deprecated, use "thumbnail_height" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_height" is deprecated, use "thumbnail_height" instead')
         return self.thumbnail_height
 
     def to_dict(self):
@@ -5211,9 +5159,7 @@ class InlineQueryResultPhoto(InlineQueryResultBase):
 
     @property
     def thumb_url(self) -> str:
-        logger.warning(
-            'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_url" is deprecated, use "thumbnail_url" instead')
         return self.thumbnail_url
 
     def to_dict(self):
@@ -5327,16 +5273,12 @@ class InlineQueryResultGif(InlineQueryResultBase):
 
     @property
     def thumb_url(self) -> str:
-        logger.warning(
-            'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_url" is deprecated, use "thumbnail_url" instead')
         return self.thumbnail_url
 
     @property
     def thumb_mime_type(self) -> str:
-        logger.warning(
-            'The parameter "thumb_mime_type" is deprecated, use "thumbnail_mime_type" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_mime_type" is deprecated, use "thumbnail_mime_type" instead')
         return self.thumbnail_mime_type
 
     def to_dict(self):
@@ -5452,16 +5394,12 @@ class InlineQueryResultMpeg4Gif(InlineQueryResultBase):
 
     @property
     def thumb_url(self) -> str:
-        logger.warning(
-            'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_url" is deprecated, use "thumbnail_url" instead')
         return self.thumbnail_url
 
     @property
     def thumb_mime_type(self) -> str:
-        logger.warning(
-            'The parameter "thumb_mime_type" is deprecated, use "thumbnail_mime_type" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_mime_type" is deprecated, use "thumbnail_mime_type" instead')
         return self.thumbnail_mime_type
 
     def to_dict(self):
@@ -5583,9 +5521,7 @@ class InlineQueryResultVideo(InlineQueryResultBase):
 
     @property
     def thumb_url(self) -> str:
-        logger.warning(
-            'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_url" is deprecated, use "thumbnail_url" instead')
         return self.thumbnail_url
 
     def to_dict(self):
@@ -5856,23 +5792,17 @@ class InlineQueryResultDocument(InlineQueryResultBase):
 
     @property
     def thumb_url(self) -> str:
-        logger.warning(
-            'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_url" is deprecated, use "thumbnail_url" instead')
         return self.thumbnail_url
 
     @property
     def thumb_width(self) -> int:
-        logger.warning(
-            'The parameter "thumb_width" is deprecated, use "thumbnail_width" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_width" is deprecated, use "thumbnail_width" instead')
         return self.thumbnail_width
 
     @property
     def thumb_height(self) -> int:
-        logger.warning(
-            'The parameter "thumb_height" is deprecated, use "thumbnail_height" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_height" is deprecated, use "thumbnail_height" instead')
         return self.thumbnail_height
 
     def to_dict(self):
@@ -5979,23 +5909,17 @@ class InlineQueryResultLocation(InlineQueryResultBase):
 
     @property
     def thumb_url(self) -> str:
-        logger.warning(
-            'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_url" is deprecated, use "thumbnail_url" instead')
         return self.thumbnail_url
 
     @property
     def thumb_width(self) -> int:
-        logger.warning(
-            'The parameter "thumb_width" is deprecated, use "thumbnail_width" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_width" is deprecated, use "thumbnail_width" instead')
         return self.thumbnail_width
 
     @property
     def thumb_height(self) -> int:
-        logger.warning(
-            'The parameter "thumb_height" is deprecated, use "thumbnail_height" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_height" is deprecated, use "thumbnail_height" instead')
         return self.thumbnail_height
 
     def to_dict(self):
@@ -6114,23 +6038,17 @@ class InlineQueryResultVenue(InlineQueryResultBase):
 
     @property
     def thumb_url(self) -> str:
-        logger.warning(
-            'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_url" is deprecated, use "thumbnail_url" instead')
         return self.thumbnail_url
 
     @property
     def thumb_width(self) -> int:
-        logger.warning(
-            'The parameter "thumb_width" is deprecated, use "thumbnail_width" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_width" is deprecated, use "thumbnail_width" instead')
         return self.thumbnail_width
 
     @property
     def thumb_height(self) -> int:
-        logger.warning(
-            'The parameter "thumb_height" is deprecated, use "thumbnail_height" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_height" is deprecated, use "thumbnail_height" instead')
         return self.thumbnail_height
 
     def to_dict(self):
@@ -6228,23 +6146,17 @@ class InlineQueryResultContact(InlineQueryResultBase):
 
     @property
     def thumb_url(self) -> str:
-        logger.warning(
-            'The parameter "thumb_url" is deprecated, use "thumbnail_url" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_url" is deprecated, use "thumbnail_url" instead')
         return self.thumbnail_url
 
     @property
     def thumb_width(self) -> int:
-        logger.warning(
-            'The parameter "thumb_width" is deprecated, use "thumbnail_width" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_width" is deprecated, use "thumbnail_width" instead')
         return self.thumbnail_width
 
     @property
     def thumb_height(self) -> int:
-        logger.warning(
-            'The parameter "thumb_height" is deprecated, use "thumbnail_height" instead'
-        )
+        log_deprecation_warning('The parameter "thumb_height" is deprecated, use "thumbnail_height" instead')
         return self.thumbnail_height
 
     def to_dict(self):
@@ -7048,7 +6960,7 @@ class Animation(JsonDeserializable):
 
     @property
     def thumb(self) -> Optional[PhotoSize]:
-        logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
+        log_deprecation_warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
 
@@ -7311,6 +7223,15 @@ class SuccessfulPayment(JsonDeserializable):
     :param invoice_payload: Bot specified invoice payload
     :type invoice_payload: :obj:`str`
 
+    :param subscription_expiration_date: Optional. Expiration date of the subscription, in Unix time; for recurring payments only
+    :type subscription_expiration_date: :obj:`int`
+
+    :param is_recurring: Optional. True, if the payment is a recurring payment, false otherwise
+    :type is_recurring: :obj:`bool`
+
+    :param is_first_recurring: Optional. True, if the payment is the first payment for a subscription
+    :type is_first_recurring: :obj:`bool`
+
     :param shipping_option_id: Optional. Identifier of the shipping option chosen by the user
     :type shipping_option_id: :obj:`str`
 
@@ -7335,17 +7256,9 @@ class SuccessfulPayment(JsonDeserializable):
         obj["order_info"] = OrderInfo.de_json(obj.get("order_info"))
         return cls(**obj)
 
-    def __init__(
-        self,
-        currency,
-        total_amount,
-        invoice_payload,
-        shipping_option_id=None,
-        order_info=None,
-        telegram_payment_charge_id=None,
-        provider_payment_charge_id=None,
-        **kwargs,
-    ):
+    def __init__(self, currency, total_amount, invoice_payload, shipping_option_id=None, order_info=None,
+                 telegram_payment_charge_id=None, provider_payment_charge_id=None, 
+                    subscription_expiration_date=None, is_recurring=None, is_first_recurring=None, **kwargs):
         self.currency: str = currency
         self.total_amount: int = total_amount
         self.invoice_payload: str = invoice_payload
@@ -7353,6 +7266,9 @@ class SuccessfulPayment(JsonDeserializable):
         self.order_info: OrderInfo = order_info
         self.telegram_payment_charge_id: str = telegram_payment_charge_id
         self.provider_payment_charge_id: str = provider_payment_charge_id
+        self.subscription_expiration_date: Optional[int] = subscription_expiration_date
+        self.is_recurring: Optional[bool] = is_recurring
+        self.is_first_recurring: Optional[bool] = is_first_recurring
 
 
 # noinspection PyShadowingBuiltins
@@ -7509,37 +7425,22 @@ class StickerSet(JsonDeserializable):
 
     @property
     def thumb(self) -> Optional[PhotoSize]:
-        logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
+        log_deprecation_warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
     @property
     def contains_masks(self) -> bool:
-        """
-        Deprecated since Bot API 6.2, use sticker_type instead.
-        """
-        logger.warning(
-            'The parameter "contains_masks" is deprecated, use "sticker_type instead"'
-        )
-        return self.sticker_type == "mask"
+        log_deprecation_warning('The parameter "contains_masks" is deprecated, use "sticker_type instead"')
+        return self.sticker_type == 'mask'
 
     @property
     def is_animated(self) -> bool:
-        """
-        Deprecated since Bot API 7.2. Stickers can be mixed now.
-        """
-        logger.warning(
-            'The parameter "is_animated" is deprecated since Bot API 7.2. Stickers can now be mixed'
-        )
+        log_deprecation_warning('The parameter "is_animated" is deprecated since Bot API 7.2. Stickers can now be mixed')
         return False
 
     @property
     def is_video(self) -> bool:
-        """
-        Deprecated since Bot API 7.2. Stickers can be mixed now.
-        """
-        logger.warning(
-            'The parameter "is_video" is deprecated since Bot API 7.2. Stickers can now be mixed'
-        )
+        log_deprecation_warning('The parameter "is_video" is deprecated since Bot API 7.2. Stickers can now be mixed')
         return False
 
 
@@ -7655,7 +7556,7 @@ class Sticker(JsonDeserializable):
 
     @property
     def thumb(self) -> Optional[PhotoSize]:
-        logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
+        log_deprecation_warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
 
@@ -7911,7 +7812,7 @@ class InputMediaVideo(InputMedia):
 
     @property
     def thumb(self) -> Optional[Union[str, Any]]:
-        logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
+        log_deprecation_warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
     def to_dict(self):
@@ -8010,7 +7911,7 @@ class InputMediaAnimation(InputMedia):
 
     @property
     def thumb(self) -> Optional[Union[str, Any]]:
-        logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
+        log_deprecation_warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
     def to_dict(self):
@@ -8097,7 +7998,7 @@ class InputMediaAudio(InputMedia):
 
     @property
     def thumb(self) -> Optional[Union[str, Any]]:
-        logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
+        log_deprecation_warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
     def to_dict(self):
@@ -8173,7 +8074,7 @@ class InputMediaDocument(InputMedia):
 
     @property
     def thumb(self) -> Optional[Union[str, Any]]:
-        logger.warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
+        log_deprecation_warning('The parameter "thumb" is deprecated, use "thumbnail" instead')
         return self.thumbnail
 
     def to_dict(self):
@@ -8368,7 +8269,7 @@ class Poll(JsonDeserializable):
         self.is_anonymous: bool = is_anonymous
         self.type: str = type
         if poll_type is not None:
-            logger.warning("Poll: poll_type parameter is deprecated. Use type instead.")
+            log_deprecation_warning("Poll: poll_type parameter is deprecated. Use type instead.")
             if type is None:
                 self.type: str = poll_type
         self.allows_multiple_answers: bool = allows_multiple_answers
@@ -8630,7 +8531,7 @@ class VoiceChatStarted(VideoChatStarted):
     """
 
     def __init__(self):
-        logger.warning("VoiceChatStarted is deprecated. Use VideoChatStarted instead.")
+        log_deprecation_warning('VoiceChatStarted is deprecated. Use VideoChatStarted instead.')
         super().__init__()
 
 
@@ -8665,9 +8566,7 @@ class VoiceChatScheduled(VideoChatScheduled):
     """
 
     def __init__(self, *args, **kwargs):
-        logger.warning(
-            "VoiceChatScheduled is deprecated. Use VideoChatScheduled instead."
-        )
+        log_deprecation_warning('VoiceChatScheduled is deprecated. Use VideoChatScheduled instead.')
         super().__init__(*args, **kwargs)
 
 
@@ -8701,7 +8600,7 @@ class VoiceChatEnded(VideoChatEnded):
     """
 
     def __init__(self, *args, **kwargs):
-        logger.warning("VoiceChatEnded is deprecated. Use VideoChatEnded instead.")
+        log_deprecation_warning('VoiceChatEnded is deprecated. Use VideoChatEnded instead.')
         super().__init__(*args, **kwargs)
 
 
@@ -8736,9 +8635,7 @@ class VoiceChatParticipantsInvited(VideoChatParticipantsInvited):
     """
 
     def __init__(self, *args, **kwargs):
-        logger.warning(
-            "VoiceChatParticipantsInvited is deprecated. Use VideoChatParticipantsInvited instead."
-        )
+        log_deprecation_warning('VoiceChatParticipantsInvited is deprecated. Use VideoChatParticipantsInvited instead.')
         super().__init__(*args, **kwargs)
 
 
@@ -9450,9 +9347,7 @@ class InputSticker(Dictionaryable, JsonSerializable):
         self.format: str = format
 
         if not self.format:
-            logger.warning(
-                "Deprecation warning. 'format' parameter is required in InputSticker. Setting format to 'static'."
-            )
+            log_deprecation_warning("Deprecation warning. 'format' parameter is required in InputSticker. Setting format to 'static'.")
             self.format = "static"
 
         if service_utils.is_string(self.sticker):
@@ -10706,12 +10601,12 @@ class UsersShared(JsonDeserializable):
 
     @property
     def user_id(self) -> None:
-        logger.warning('The parameter "user_id" is deprecated, use "user_ids" instead')
+        log_deprecation_warning('The parameter "user_id" is deprecated, use "user_ids" instead')
         return None
 
     @property
     def user_ids(self) -> List[SharedUser]:
-        logger.warning('The parameter "user_ids" is deprecated, use "users" instead')
+        log_deprecation_warning('The parameter "user_ids" is deprecated, use "users" instead')
         return self.users
 
 
@@ -11031,9 +10926,7 @@ class InaccessibleMessage(JsonDeserializable):
 
     @staticmethod
     def __universal_deprecation(property_name):
-        logger.warning(
-            f'Deprecation warning: the filed "{property_name}" is not accessible for InaccessibleMessage. You should check if your object is Message instance before access.'
-        )
+        log_deprecation_warning(f'Deprecation warning: the field "{property_name}" is not accessible for InaccessibleMessage. You should check if your object is Message instance before access.')
         return None
 
     def __getattr__(self, item):
@@ -11917,6 +11810,10 @@ class TransactionPartner(JsonDeserializable):
             return TransactionPartnerUser.de_json(obj)
         elif obj["type"] == "telegram_ads":
             return TransactionPartnerTelegramAds.de_json(obj)
+        elif obj["type"] == "telegram_api":
+            return TransactionPartnerTelegramApi.de_json(obj)
+        elif obj["type"] == "affiliate_program":
+            return TransactionPartnerAffiliateProgram.de_json(obj)
         elif obj["type"] == "other":
             return TransactionPartnerOther.de_json(obj)
 
@@ -11955,6 +11852,33 @@ class TransactionPartnerFragment(TransactionPartner):
         return cls(**obj)
 
 
+class TransactionPartnerTelegramApi(TransactionPartner):
+    """
+    Describes a transaction with payment for paid broadcasting.
+
+    Telegram documentation: https://core.telegram.org/bots/api#transactionpartnertelegramapi
+
+    :param type: Type of the transaction partner, always “telegram_api”
+    :type type: :obj:`str`
+
+    :param request_count: The number of successful requests that exceeded regular limits and were therefore billed
+    :type request_count: :obj:`int`
+
+    :return: Instance of the class
+    :rtype: :class:`TransactionPartnerTelegramApi`
+    """
+
+    def __init__(self, type, request_count, **kwargs):
+        self.type: str = type
+        self.request_count: int = request_count
+
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None: return None
+        obj = cls.check_json(json_string)
+        return cls(**obj)
+
+
 # noinspection PyShadowingBuiltins
 class TransactionPartnerUser(TransactionPartner):
     """
@@ -11968,39 +11892,47 @@ class TransactionPartnerUser(TransactionPartner):
     :param user: Information about the user
     :type user: :class:`User`
 
+    :param affiliate: Optional. Information about the affiliate that received a commission via this transaction
+    :type affiliate: :class:`AffiliateInfo`
+
     :param invoice_payload: Optional, Bot-specified invoice payload
     :type invoice_payload: :obj:`str`
 
+    :param subscription_period: Optional. The duration of the paid subscription
+    :type subscription_period: :obj:`int`
+
     :param paid_media: Optional. Information about the paid media bought by the user
     :type paid_media: :obj:`list` of :class:`PaidMedia`
+
+    :param gift: Optional. The gift sent to the user by the bot
+    :type gift: :class:`Gift`
 
     :return: Instance of the class
     :rtype: :class:`TransactionPartnerUser`
     """
 
-    def __init__(
-        self,
-        type,
-        user,
-        invoice_payload=None,
-        paid_media: Optional[List[PaidMedia]] = None,
-        **kwargs,
-    ):
+    def __init__(self, type, user, affiliate=None, invoice_payload=None, paid_media: Optional[List[PaidMedia]] = None, 
+                    subscription_period=None, gift: Optional[Gift] = None, **kwargs):
         self.type: str = type
         self.user: User = user
+        self.affiliate: Optional[AffiliateInfo] = affiliate
         self.invoice_payload: Optional[str] = invoice_payload
         self.paid_media: Optional[List[PaidMedia]] = paid_media
+        self.subscription_period: Optional[int] = subscription_period
+        self.gift: Optional[Gift] = gift
 
     @classmethod
     def de_json(cls, json_string):
         if json_string is None:
             return None
         obj = cls.check_json(json_string)
-        obj["user"] = User.de_json(obj["user"])
-        if "paid_media" in obj:
-            obj["paid_media"] = [
-                PaidMedia.de_json(media) for media in obj["paid_media"]
-            ]
+        obj['user'] = User.de_json(obj['user'])
+        if 'paid_media' in obj:
+            obj['paid_media'] = [PaidMedia.de_json(media) for media in obj['paid_media']]
+        if 'gift' in obj:
+            obj['gift'] = Gift.de_json(obj['gift'])
+        if 'affiliate' in obj:
+            obj['affiliate'] = AffiliateInfo.de_json(obj['affiliate'])
         return cls(**obj)
 
 
@@ -12067,6 +11999,9 @@ class StarTransaction(JsonDeserializable):
     :param amount: Number of Telegram Stars transferred by the transaction
     :type amount: :obj:`int`
 
+    :param nanostar_amount: Optional. The number of 1/1000000000 shares of Telegram Stars transferred by the transaction; from 0 to 999999999
+    :type nanostar_amount: :obj:`int`
+
     :param date: Date the transaction was created in Unix time
     :type date: :obj:`int`
 
@@ -12090,13 +12025,14 @@ class StarTransaction(JsonDeserializable):
         if "receiver" in obj:
             obj["receiver"] = TransactionPartner.de_json(obj["receiver"])
         return cls(**obj)
-
-    def __init__(self, id, amount, date, source=None, receiver=None, **kwargs):
+    
+    def __init__(self, id, amount, date, source=None, receiver=None, nanostar_amount=None, **kwargs):
         self.id: str = id
         self.amount: int = amount
         self.date: int = date
         self.source: Optional[TransactionPartner] = source
         self.receiver: Optional[TransactionPartner] = receiver
+        self.nanostar_amount: Optional[int] = nanostar_amount
 
 
 class StarTransactions(JsonDeserializable):
@@ -12481,3 +12417,201 @@ class PaidMediaPurchased(JsonDeserializable):
         obj = cls.check_json(json_string)
         obj["from_user"] = User.de_json(obj["from_user"])
         return cls(**obj)
+
+class CopyTextButton(JsonSerializable, JsonDeserializable):
+    """
+    This object represents an inline keyboard button that copies specified text to the clipboard.
+
+    Telegram documentation: https://core.telegram.org/bots/api#copytextbutton
+
+    :param text: The text to be copied to the clipboard; 1-256 characters
+    :type text: :obj:`str`
+
+    :return: Instance of the class
+    :rtype: :class:`CopyTextButton`
+    """
+    def __init__(self, text: str, **kwargs):
+        self.text: str = text
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
+    
+    def to_dict(self):
+        data = {
+            'text': self.text
+        }
+        return data
+    
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None: return None
+        obj = cls.check_json(json_string)
+        return cls(**obj)
+
+
+class PreparedInlineMessage(JsonDeserializable):
+    """
+    Describes an inline message to be sent by a user of a Mini App.
+
+    Telegram documentation: https://core.telegram.org/bots/api#preparedinlinemessage
+
+    :param id: Unique identifier of the prepared message
+    :type id: :obj:`str`
+
+    :param expiration_date: Expiration date of the prepared message, in Unix time. Expired prepared messages can no longer be used
+    :type expiration_date: :obj:`int`
+
+    :return: Instance of the class
+    :rtype: :class:`PreparedInlineMessage`
+    """
+
+    def __init__(self, id, expiration_date, **kwargs):
+        self.id: str = id
+        self.expiration_date: int = expiration_date
+
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None: return None
+        obj = cls.check_json(json_string)
+        return cls(**obj)
+    
+
+class Gift(JsonDeserializable):
+    """
+    This object represents a gift that can be sent by the bot.
+
+    Telegram documentation: https://core.telegram.org/bots/api#gift
+
+    :param id: Unique identifier of the gift
+    :type id: :obj:`str`
+
+    :param sticker: The sticker that represents the gift
+    :type sticker: :class:`Sticker`
+
+    :param star_count: The number of Telegram Stars that must be paid to send the sticker
+    :type star_count: :obj:`int`
+
+    :param total_count: Optional. The total number of the gifts of this type that can be sent; for limited gifts only
+    :type total_count: :obj:`int`
+
+    :param remaining_count: Optional. The number of remaining gifts of this type that can be sent; for limited gifts only
+    :type remaining_count: :obj:`int`
+
+    :return: Instance of the class
+    :rtype: :class:`Gift`
+    """
+
+    def __init__(self, id, sticker, star_count, total_count=None, remaining_count=None, **kwargs):
+        self.id: str = id
+        self.sticker: Sticker = sticker
+        self.star_count: int = star_count
+        self.total_count: Optional[int] = total_count
+        self.remaining_count: Optional[int] = remaining_count
+
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None: return None
+        obj = cls.check_json(json_string)
+        obj['sticker'] = Sticker.de_json(obj['sticker'])
+        return cls(**obj)
+    
+class Gifts(JsonDeserializable):
+    """
+    This object represent a list of gifts.
+
+    Telegram documentation: https://core.telegram.org/bots/api#gifts
+
+    :param gifts: The list of gifts
+    :type gifts: :obj:`list` of :class:`Gift`
+
+    :return: Instance of the class
+    :rtype: :class:`Gifts`
+    """
+
+    def __init__(self, gifts, **kwargs):
+        self.gifts: List[Gift] = gifts
+
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None: return None
+        obj = cls.check_json(json_string)
+        obj['gifts'] = [Gift.de_json(gift) for gift in obj['gifts']]
+        return cls(**obj)
+    
+    
+class TransactionPartnerAffiliateProgram(TransactionPartner):
+    """
+    Describes the affiliate program that issued the affiliate commission received via this transaction.
+
+    Telegram documentation: https://core.telegram.org/bots/api#transactionpartneraffiliateprogram
+
+    :param type: Type of the transaction partner, always “affiliate_program”
+    :type type: :obj:`str`
+
+    :param sponsor_user: Optional. Information about the bot that sponsored the affiliate program
+    :type sponsor_user: :class:`User`
+
+    :param commission_per_mille: The number of Telegram Stars received by the bot for each 1000 Telegram Stars received by the affiliate program sponsor from referred users
+    :type commission_per_mille: :obj:`int`
+
+    :return: Instance of the class
+    :rtype: :class:`TransactionPartnerAffiliateProgram`
+    """
+
+    def __init__(self, type, commission_per_mille, sponsor_user=None, **kwargs):
+        self.type: str = type
+        self.sponsor_user: Optional[User] = sponsor_user
+        self.commission_per_mille: int = commission_per_mille
+
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None: return None
+        obj = cls.check_json(json_string)
+        if 'sponsor_user' in obj:
+            obj['sponsor_user'] = User.de_json(obj['sponsor_user'])
+
+        return cls(**obj)
+    
+
+class AffiliateInfo(JsonDeserializable):
+    """
+    Contains information about the affiliate that received a commission via this transaction.
+
+    Telegram documentation: https://core.telegram.org/bots/api#affiliateinfo
+
+    :param affiliate_user: Optional. The bot or the user that received an affiliate commission if it was received by a bot or a user
+    :type affiliate_user: :class:`User`
+
+    :param affiliate_chat: Optional. The chat that received an affiliate commission if it was received by a chat
+    :type affiliate_chat: :class:`Chat`
+
+    :param commission_per_mille: The number of Telegram Stars received by the affiliate for each 1000 Telegram Stars received by the bot from referred users
+    :type commission_per_mille: :obj:`int`
+
+    :param amount: Integer amount of Telegram Stars received by the affiliate from the transaction, rounded to 0; can be negative for refunds
+    :type amount: :obj:`int`
+
+    :param nanostar_amount: Optional. The number of 1/1000000000 shares of Telegram Stars received by the affiliate; from -999999999 to 999999999; can be negative for refunds
+    :type nanostar_amount: :obj:`int`
+
+    :return: Instance of the class
+    :rtype: :class:`AffiliateInfo`
+    """
+
+    def __init__(self, commission_per_mille, amount, affiliate_user=None, affiliate_chat=None, nanostar_amount=None, **kwargs):
+        self.affiliate_user: Optional[User] = affiliate_user
+        self.affiliate_chat: Optional[Chat] = affiliate_chat
+        self.commission_per_mille: int = commission_per_mille
+        self.amount: int = amount
+        self.nanostar_amount: Optional[int] = nanostar_amount
+
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None: return None
+        obj = cls.check_json(json_string)
+        if 'affiliate_user' in obj:
+            obj['affiliate_user'] = User.de_json(obj['affiliate_user'])
+        if 'affiliate_chat' in obj:
+            obj['affiliate_chat'] = Chat.de_json(obj['affiliate_chat'])
+        return cls(**obj)
+    

@@ -1512,6 +1512,26 @@ class TeleBot:
             apihelper.get_user_profile_photos(self.token, user_id, offset=offset, limit=limit)
         )
 
+    def set_user_emoji_status(self, user_id: int, emoji_status_custom_emoji_id: Optional[str]=None, emoji_status_expiration_date: Optional[int]=None) -> bool:
+        """
+        Changes the emoji status for a given user that previously allowed the bot to manage their emoji status via the Mini App method requestEmojiStatusAccess. Returns True on success.
+
+        Telegram documentation: https://core.telegram.org/bots/api#setuseremojistatus
+
+        :param user_id: Unique identifier of the target user
+        :type user_id: :obj:`int`
+
+        :param emoji_status_custom_emoji_id: Custom emoji identifier of the emoji status to set. Pass an empty string to remove the status.
+        :type emoji_status_custom_emoji_id: :obj:`str`
+
+        :param emoji_status_expiration_date: Expiration date of the emoji status, if any
+        :type emoji_status_expiration_date: :obj:`int`
+
+        :return: :obj:`bool`
+        """
+        return apihelper.set_user_emoji_status(
+            self.token, user_id, emoji_status_custom_emoji_id=emoji_status_custom_emoji_id, emoji_status_expiration_date=emoji_status_expiration_date)
+    
 
     def get_chat(self, chat_id: Union[int, str]) -> types.ChatFullInfo:
         """
@@ -1670,7 +1690,8 @@ class TeleBot:
             reply_parameters: Optional[types.ReplyParameters]=None,
             link_preview_options : Optional[types.LinkPreviewOptions]=None,
             business_connection_id: Optional[str]=None,
-            message_effect_id: Optional[str]=None) -> types.Message:
+            message_effect_id: Optional[str]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         Use this method to send text messages.
 
@@ -1729,6 +1750,10 @@ class TeleBot:
         :param message_effect_id: Unique identifier of the message effect to be added to the message; for private chats only
         :type message_effect_id: :obj:`str`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
@@ -1777,7 +1802,7 @@ class TeleBot:
                 reply_markup=reply_markup, parse_mode=parse_mode, disable_notification=disable_notification,
                 timeout=timeout, entities=entities, protect_content=protect_content, message_thread_id=message_thread_id,
                 reply_parameters=reply_parameters, link_preview_options=link_preview_options, business_connection_id=business_connection_id,
-                message_effect_id=message_effect_id))
+                message_effect_id=message_effect_id, allow_paid_broadcast=allow_paid_broadcast))
 
 
     def forward_message(
@@ -1839,7 +1864,8 @@ class TeleBot:
             timeout: Optional[int]=None,
             message_thread_id: Optional[int]=None,
             reply_parameters: Optional[types.ReplyParameters]=None,
-            show_caption_above_media: Optional[bool]=None) -> types.MessageID:
+            show_caption_above_media: Optional[bool]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.MessageID:
         """
         Use this method to copy messages of any kind.
         Service messages, paid media messages, giveaway messages, giveaway winners messages, and invoice messages can't be copied.
@@ -1894,6 +1920,10 @@ class TeleBot:
 
         :param show_caption_above_media: Pass True, if the caption must be shown above the message media. Supported only for animation, photo and video messages.
         :type show_caption_above_media: :obj:`bool`
+
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
         
         :return: On success, the MessageId of the sent message is returned.
         :rtype: :class:`telebot.types.MessageID`
@@ -1926,7 +1956,7 @@ class TeleBot:
                 parse_mode=parse_mode, caption_entities=caption_entities, disable_notification=disable_notification,
                 reply_markup=reply_markup, timeout=timeout, protect_content=protect_content,
                 message_thread_id=message_thread_id, reply_parameters=reply_parameters,
-                show_caption_above_media=show_caption_above_media))
+                show_caption_above_media=show_caption_above_media, allow_paid_broadcast=allow_paid_broadcast))
 
 
     def delete_message(self, chat_id: Union[int, str], message_id: int, 
@@ -2076,7 +2106,8 @@ class TeleBot:
             message_thread_id: Optional[int]=None,
             reply_parameters: Optional[types.ReplyParameters]=None,
             business_connection_id: Optional[str]=None,
-            message_effect_id: Optional[str]=None) -> types.Message:
+            message_effect_id: Optional[str]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         Use this method to send an animated emoji that will display a random value. On success, the sent Message is returned.
 
@@ -2121,6 +2152,10 @@ class TeleBot:
         :param message_effect_id: Unique identifier of the message effect to be added to the message; for private chats only
         :type message_effect_id: :obj:`str`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
@@ -2150,7 +2185,7 @@ class TeleBot:
                 self.token, chat_id, emoji=emoji, disable_notification=disable_notification,
                 reply_markup=reply_markup, timeout=timeout, protect_content=protect_content,
                 message_thread_id=message_thread_id, reply_parameters=reply_parameters, business_connection_id=business_connection_id,
-                message_effect_id=message_effect_id))
+                message_effect_id=message_effect_id, allow_paid_broadcast=allow_paid_broadcast))
 
 
 
@@ -2169,7 +2204,8 @@ class TeleBot:
             reply_parameters: Optional[types.ReplyParameters]=None,
             business_connection_id: Optional[str]=None,
             message_effect_id: Optional[str]=None,
-            show_caption_above_media: Optional[bool]=None) -> types.Message:
+            show_caption_above_media: Optional[bool]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         Use this method to send photos. On success, the sent Message is returned.
 
@@ -2229,6 +2265,10 @@ class TeleBot:
 
         :param show_caption_above_media: Pass True, if the caption must be shown above the message media. Supported only for animation, photo and video messages.
         :type show_caption_above_media: :obj:`bool`
+
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
         
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
@@ -2262,7 +2302,7 @@ class TeleBot:
                 caption_entities=caption_entities, protect_content=protect_content,
                 message_thread_id=message_thread_id, has_spoiler=has_spoiler, reply_parameters=reply_parameters,
                 business_connection_id=business_connection_id, message_effect_id=message_effect_id,
-                show_caption_above_media=show_caption_above_media))
+                show_caption_above_media=show_caption_above_media, allow_paid_broadcast=allow_paid_broadcast))
 
 
     def send_audio(
@@ -2282,7 +2322,8 @@ class TeleBot:
             thumb: Optional[Union[Any, str]]=None,
             reply_parameters: Optional[types.ReplyParameters]=None,
             business_connection_id: Optional[str]=None,
-            message_effect_id: Optional[str]=None) -> types.Message:
+            message_effect_id: Optional[str]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         Use this method to send audio files, if you want Telegram clients to display them in the music player.
         Your audio must be in the .MP3 or .M4A format. On success, the sent Message is returned. Bots can currently send audio files of up to 50 MB in size,
@@ -2358,6 +2399,10 @@ class TeleBot:
         :param message_effect_id: Unique identifier of the message effect to be added to the message; for private chats only
         :type message_effect_id: :obj:`str`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
@@ -2393,7 +2438,7 @@ class TeleBot:
                 reply_markup=reply_markup, parse_mode=parse_mode, disable_notification=disable_notification,
                 timeout=timeout, thumbnail=thumbnail, caption_entities=caption_entities, protect_content=protect_content,
                 message_thread_id=message_thread_id, reply_parameters=reply_parameters, business_connection_id=business_connection_id,
-                message_effect_id=message_effect_id))
+                message_effect_id=message_effect_id, allow_paid_broadcast=allow_paid_broadcast))
 
 
     def send_voice(
@@ -2410,7 +2455,8 @@ class TeleBot:
             message_thread_id: Optional[int]=None,
             reply_parameters: Optional[types.ReplyParameters]=None,
             business_connection_id: Optional[str]=None,
-            message_effect_id: Optional[str]=None) -> types.Message:
+            message_effect_id: Optional[str]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         Use this method to send audio files, if you want Telegram clients to display the file as a playable voice message. For this to work, your audio must be in an .OGG file encoded with OPUS, or in .MP3 format, or in .M4A format (other formats may be sent as Audio or Document). On success, the sent Message is returned. Bots can currently send voice messages of up to 50 MB in size, this limit may be changed in the future.
 
@@ -2467,6 +2513,10 @@ class TeleBot:
         :param message_effect_id: Unique identifier of the message effect to be added to the message; for private chats only
         :type message_effect_id: :obj:`str`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         """
         parse_mode = self.parse_mode if (parse_mode is None) else parse_mode
@@ -2497,7 +2547,7 @@ class TeleBot:
                 parse_mode=parse_mode, disable_notification=disable_notification, timeout=timeout,
                 caption_entities=caption_entities, protect_content=protect_content,
                 message_thread_id=message_thread_id, reply_parameters=reply_parameters, business_connection_id=business_connection_id,
-                message_effect_id=message_effect_id)
+                message_effect_id=message_effect_id, allow_paid_broadcast=allow_paid_broadcast)
         )
 
 
@@ -2519,7 +2569,8 @@ class TeleBot:
             thumb: Optional[Union[Any, str]]=None,
             reply_parameters: Optional[types.ReplyParameters]=None,
             business_connection_id: Optional[str]=None,
-            message_effect_id: Optional[str]=None) -> types.Message:
+            message_effect_id: Optional[str]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         Use this method to send general files.
 
@@ -2588,6 +2639,10 @@ class TeleBot:
         :param message_effect_id: Unique identifier of the message effect to be added to the message; for private chats only
         :type message_effect_id: :obj:`str`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
@@ -2632,7 +2687,7 @@ class TeleBot:
                 timeout=timeout, caption=caption, thumbnail=thumbnail, caption_entities=caption_entities,
                 disable_content_type_detection=disable_content_type_detection, visible_file_name=visible_file_name,
                 protect_content=protect_content, message_thread_id=message_thread_id, reply_parameters=reply_parameters,
-                business_connection_id=business_connection_id, message_effect_id=message_effect_id)
+                business_connection_id=business_connection_id, message_effect_id=message_effect_id, allow_paid_broadcast=allow_paid_broadcast)
         )
 
 
@@ -2650,7 +2705,8 @@ class TeleBot:
             emoji: Optional[str]=None,
             reply_parameters: Optional[types.ReplyParameters]=None,
             business_connection_id: Optional[str]=None,
-            message_effect_id: Optional[str]=None) -> types.Message:
+            message_effect_id: Optional[str]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         Use this method to send static .WEBP, animated .TGS, or video .WEBM stickers.
         On success, the sent Message is returned.
@@ -2702,6 +2758,10 @@ class TeleBot:
         :param message_effect_id: Unique identifier of the message effect to be added to the message; for private chats only
         :type message_effect_id: :obj:`str`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
@@ -2736,7 +2796,7 @@ class TeleBot:
                 reply_markup=reply_markup, disable_notification=disable_notification, timeout=timeout,
                 protect_content=protect_content, message_thread_id=message_thread_id, emoji=emoji,
                 reply_parameters=reply_parameters, business_connection_id=business_connection_id,
-                message_effect_id=message_effect_id)
+                message_effect_id=message_effect_id, allow_paid_broadcast=allow_paid_broadcast)
         )
 
 
@@ -2763,7 +2823,8 @@ class TeleBot:
             reply_parameters: Optional[types.ReplyParameters]=None,
             business_connection_id: Optional[str]=None,
             message_effect_id: Optional[str]=None,
-            show_caption_above_media: Optional[bool]=None) -> types.Message:
+            show_caption_above_media: Optional[bool]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         Use this method to send video files, Telegram clients support mp4 videos (other formats may be sent as Document).
         
@@ -2843,6 +2904,10 @@ class TeleBot:
         :param show_caption_above_media: Pass True, if the caption must be shown above the message media. Supported only for animation, photo and video messages.
         :type show_caption_above_media: :obj:`bool`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
@@ -2884,7 +2949,7 @@ class TeleBot:
                 thumbnail=thumbnail, height=height, width=width, caption_entities=caption_entities,
                 protect_content=protect_content, message_thread_id=message_thread_id, has_spoiler=has_spoiler,
                 reply_parameters=reply_parameters, business_connection_id=business_connection_id, message_effect_id=message_effect_id,
-                show_caption_above_media=show_caption_above_media)
+                show_caption_above_media=show_caption_above_media, allow_paid_broadcast=allow_paid_broadcast)
         )
 
 
@@ -2909,7 +2974,8 @@ class TeleBot:
             reply_parameters: Optional[types.ReplyParameters]=None,
             business_connection_id: Optional[str]=None,
             message_effect_id: Optional[str]=None,
-            show_caption_above_media: Optional[bool]=None) -> types.Message:
+            show_caption_above_media: Optional[bool]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         Use this method to send animation files (GIF or H.264/MPEG-4 AVC video without sound).
         On success, the sent Message is returned. Bots can currently send animation files of up to 50 MB in size, this limit may be changed in the future.
@@ -2988,6 +3054,10 @@ class TeleBot:
         :param show_caption_above_media: Pass True, if the caption must be shown above the message media. Supported only for animation, photo and video messages.
         :type show_caption_above_media: :obj:`bool`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
@@ -3024,7 +3094,7 @@ class TeleBot:
                 thumbnail=thumbnail, caption_entities=caption_entities, protect_content=protect_content,
                 width=width, height=height, message_thread_id=message_thread_id, reply_parameters=reply_parameters,
                 has_spoiler=has_spoiler, business_connection_id=business_connection_id, message_effect_id=message_effect_id,
-                show_caption_above_media=show_caption_above_media)
+                show_caption_above_media=show_caption_above_media, allow_paid_broadcast=allow_paid_broadcast)
             )
 
 
@@ -3043,7 +3113,8 @@ class TeleBot:
             thumb: Optional[Union[Any, str]]=None,
             reply_parameters: Optional[types.ReplyParameters]=None,
             business_connection_id: Optional[str]=None,
-            message_effect_id: Optional[str]=None) -> types.Message:
+            message_effect_id: Optional[str]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         As of v.4.0, Telegram clients support rounded square MPEG4 videos of up to 1 minute long.
         Use this method to send video messages. On success, the sent Message is returned.
@@ -3104,6 +3175,10 @@ class TeleBot:
         :param message_effect_id: Unique identifier of the message effect to be added to the message; for private chats only
         :type message_effect_id: :obj:`str`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
@@ -3137,7 +3212,7 @@ class TeleBot:
                 self.token, chat_id, data, duration=duration, length=length, reply_markup=reply_markup,
                 disable_notification=disable_notification, timeout=timeout, thumbnail=thumbnail,
                 protect_content=protect_content, message_thread_id=message_thread_id, reply_parameters=reply_parameters,
-                business_connection_id=business_connection_id, message_effect_id=message_effect_id)
+                business_connection_id=business_connection_id, message_effect_id=message_effect_id, allow_paid_broadcast=allow_paid_broadcast)
         )
     
     def send_paid_media(
@@ -3146,7 +3221,7 @@ class TeleBot:
             show_caption_above_media: Optional[bool]=None, disable_notification: Optional[bool]=None,
             protect_content: Optional[bool]=None, reply_parameters: Optional[types.ReplyParameters]=None,
             reply_markup: Optional[REPLY_MARKUP_TYPES]=None, business_connection_id: Optional[str]=None,
-            payload: Optional[str]=None
+            payload: Optional[str]=None, allow_paid_broadcast: Optional[bool]=None
     ) -> types.Message:
         """
         Use this method to send paid media to channel chats. On success, the sent Message is returned.
@@ -3192,6 +3267,10 @@ class TeleBot:
         :param payload: Bot-defined paid media payload, 0-128 bytes. This will not be displayed to the user, use it for your internal processes.
         :type payload: :obj:`str`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
@@ -3201,7 +3280,7 @@ class TeleBot:
                 caption_entities=caption_entities, show_caption_above_media=show_caption_above_media,
                 disable_notification=disable_notification, protect_content=protect_content,
                 reply_parameters=reply_parameters, reply_markup=reply_markup, business_connection_id=business_connection_id,
-                payload=payload)
+                payload=payload, allow_paid_broadcast=allow_paid_broadcast)
         )
 
 
@@ -3218,7 +3297,8 @@ class TeleBot:
             message_thread_id: Optional[int]=None,
             reply_parameters: Optional[types.ReplyParameters]=None,
             business_connection_id: Optional[str]=None,
-            message_effect_id: Optional[str]=None) -> List[types.Message]:
+            message_effect_id: Optional[str]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> List[types.Message]:
         """
         Use this method to send a group of photos, videos, documents or audios as an album. Documents and audio files
         can be only grouped in an album with messages of the same type. On success, an array of Messages that were sent is returned.
@@ -3258,6 +3338,10 @@ class TeleBot:
         :param message_effect_id: Unique identifier of the message effect to be added to the message; for private chats only
         :type message_effect_id: :obj:`str`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, an array of Messages that were sent is returned.
         :rtype: List[types.Message]
         """
@@ -3291,7 +3375,7 @@ class TeleBot:
         result = apihelper.send_media_group(
             self.token, chat_id, media, disable_notification=disable_notification, timeout=timeout,
             protect_content=protect_content, message_thread_id=message_thread_id, reply_parameters=reply_parameters,
-            business_connection_id=business_connection_id, message_effect_id=message_effect_id)
+            business_connection_id=business_connection_id, message_effect_id=message_effect_id, allow_paid_broadcast=allow_paid_broadcast)
         return [types.Message.de_json(msg) for msg in result]
 
 
@@ -3311,7 +3395,8 @@ class TeleBot:
             message_thread_id: Optional[int]=None,
             reply_parameters: Optional[types.ReplyParameters]=None,
             business_connection_id: Optional[str]=None,
-            message_effect_id: Optional[str]=None) -> types.Message:
+            message_effect_id: Optional[str]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         Use this method to send point on the map. On success, the sent Message is returned.
 
@@ -3370,6 +3455,10 @@ class TeleBot:
         :parameter message_effect_id: Unique identifier of the message effect to be added to the message; for private chats only
         :type message_effect_id: :obj:`str`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
@@ -3400,7 +3489,7 @@ class TeleBot:
                 disable_notification=disable_notification, timeout=timeout, horizontal_accuracy=horizontal_accuracy,
                 heading=heading, proximity_alert_radius=proximity_alert_radius, protect_content=protect_content,
                 message_thread_id=message_thread_id, reply_parameters=reply_parameters, business_connection_id=business_connection_id,
-                message_effect_id=message_effect_id)
+                message_effect_id=message_effect_id, allow_paid_broadcast=allow_paid_broadcast)
             )
 
 
@@ -3531,7 +3620,8 @@ class TeleBot:
             message_thread_id: Optional[int]=None,
             reply_parameters: Optional[types.ReplyParameters]=None,
             business_connection_id: Optional[str]=None,
-            message_effect_id: Optional[str]=None) -> types.Message:
+            message_effect_id: Optional[str]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         Use this method to send information about a venue. On success, the sent Message is returned.
         
@@ -3597,6 +3687,10 @@ class TeleBot:
         :param message_effect_id: Unique identifier of the message effect to be added to the message; for private chats only
         :type message_effect_id: :obj:`str`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
@@ -3627,7 +3721,7 @@ class TeleBot:
                 foursquare_type=foursquare_type, disable_notification=disable_notification, reply_markup=reply_markup,
                 timeout=timeout, google_place_id=google_place_id, google_place_type=google_place_type,
                 protect_content=protect_content, message_thread_id=message_thread_id, reply_parameters=reply_parameters, business_connection_id=business_connection_id,
-                message_effect_id=message_effect_id)
+                message_effect_id=message_effect_id, allow_paid_broadcast=allow_paid_broadcast)
             )
 
 
@@ -3643,7 +3737,8 @@ class TeleBot:
             protect_content: Optional[bool]=None, message_thread_id: Optional[int]=None,
             reply_parameters: Optional[types.ReplyParameters]=None,
             business_connection_id: Optional[str]=None,
-            message_effect_id: Optional[str]=None) -> types.Message:
+            message_effect_id: Optional[str]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         Use this method to send phone contacts. On success, the sent Message is returned.
 
@@ -3696,6 +3791,10 @@ class TeleBot:
         :param message_effect_id: Unique identifier of the message effect to be added to the message; for private chats only
         :type message_effect_id: :obj:`str`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         :rtype: :class:`telebot.types.Message`
         """
@@ -3725,7 +3824,7 @@ class TeleBot:
                 self.token, chat_id, phone_number, first_name, last_name=last_name, vcard=vcard,
                 disable_notification=disable_notification, reply_markup=reply_markup, timeout=timeout,
                 protect_content=protect_content, message_thread_id=message_thread_id, reply_parameters=reply_parameters,
-                business_connection_id=business_connection_id, message_effect_id=message_effect_id)
+                business_connection_id=business_connection_id, message_effect_id=message_effect_id, allow_paid_broadcast=allow_paid_broadcast)
             )
 
 
@@ -4890,10 +4989,11 @@ class TeleBot:
             business_connection_id: Optional[str]=None,
             timeout: Optional[int]=None) -> Union[types.Message, bool]:
         """
-        Use this method to edit animation, audio, document, photo, or video messages.
-        If a message is a part of a message album, then it can be edited only to a photo or a video.
-        Otherwise, message type can be changed arbitrarily. When inline message is edited, new file can't be uploaded.
-        Use previously uploaded file via its file_id or specify a URL.
+        Use this method to edit animation, audio, document, photo, or video messages, or to add media to text messages.
+        If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo or a video otherwise.
+        When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
+        On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned.
+        Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent. 
 
         Telegram documentation: https://core.telegram.org/bots/api#editmessagemedia
 
@@ -4982,7 +5082,8 @@ class TeleBot:
             message_thread_id: Optional[int]=None,
             reply_parameters: Optional[types.ReplyParameters]=None,
             business_connection_id: Optional[str]=None,
-            message_effect_id: Optional[str]=None) -> types.Message:
+            message_effect_id: Optional[str]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         Used to send the game.
 
@@ -5024,6 +5125,10 @@ class TeleBot:
         :param message_effect_id: Unique identifier of the message effect
         :type message_effect_id: :obj:`str`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         :rtype: :obj:`types.Message`
         """
@@ -5056,7 +5161,7 @@ class TeleBot:
                 self.token, chat_id, game_short_name, disable_notification=disable_notification,
                 reply_markup=reply_markup, timeout=timeout, protect_content=protect_content,
                 message_thread_id=message_thread_id, reply_parameters=reply_parameters, business_connection_id=business_connection_id,
-                message_effect_id=message_effect_id)
+                message_effect_id=message_effect_id, allow_paid_broadcast=allow_paid_broadcast)
         )
 
 
@@ -5161,7 +5266,8 @@ class TeleBot:
             protect_content: Optional[bool]=None,
             message_thread_id: Optional[int]=None,
             reply_parameters: Optional[types.ReplyParameters]=None,
-            message_effect_id: Optional[str]=None) -> types.Message:
+            message_effect_id: Optional[str]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         Sends invoice.
 
@@ -5270,6 +5376,10 @@ class TeleBot:
         :param message_effect_id: The identifier of a message effect, which will be applied to the sent message
         :type message_effect_id: :obj:`str`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         :rtype: :obj:`types.Message`
         """
@@ -5309,7 +5419,7 @@ class TeleBot:
                 provider_data=provider_data, timeout=timeout, protect_content=protect_content,
                 message_thread_id=message_thread_id, reply_parameters=reply_parameters,
                 max_tip_amount=max_tip_amount, suggested_tip_amounts=suggested_tip_amounts,
-                message_effect_id=message_effect_id)
+                message_effect_id=message_effect_id, allow_paid_broadcast=allow_paid_broadcast)
         )
 
     def create_invoice_link(self,
@@ -5328,7 +5438,9 @@ class TeleBot:
             need_shipping_address: Optional[bool]=None,
             send_phone_number_to_provider: Optional[bool]=None,
             send_email_to_provider: Optional[bool]=None,
-            is_flexible: Optional[bool]=None) -> str:
+            is_flexible: Optional[bool]=None,
+            subscription_period: Optional[int]=None,
+            business_connection_id: Optional[str]=None) -> str:
             
         """
         Use this method to create a link for an invoice. 
@@ -5336,6 +5448,9 @@ class TeleBot:
 
         Telegram documentation:
         https://core.telegram.org/bots/api#createinvoicelink
+
+        :param business_connection_id: Unique identifier of the business connection on behalf of which the link will be created
+        :type business_connection_id: :obj:`str`
 
         :param title: Product name, 1-32 characters
         :type title: :obj:`str`
@@ -5358,6 +5473,11 @@ class TeleBot:
         :param prices: Price breakdown, a list of components
             (e.g. product price, tax, discount, delivery cost, delivery tax, bonus, etc.)
         :type prices: :obj:`list` of :obj:`types.LabeledPrice`
+
+        :param subscription_period: The number of seconds the subscription will be active for before the next payment.
+            The currency must be set to “XTR” (Telegram Stars) if the parameter is used. Currently, it must always
+            be 2592000 (30 days) if specified.
+        :type subscription_period: :obj:`int`
 
         :param max_tip_amount: The maximum accepted amount for tips in the smallest units of the currency
         :type max_tip_amount: :obj:`int`
@@ -5415,7 +5535,8 @@ class TeleBot:
             photo_width=photo_width, photo_height=photo_height, need_name=need_name,
             need_phone_number=need_phone_number, need_email=need_email,
             need_shipping_address=need_shipping_address, send_phone_number_to_provider=send_phone_number_to_provider,
-            send_email_to_provider=send_email_to_provider, is_flexible=is_flexible)
+            send_email_to_provider=send_email_to_provider, is_flexible=is_flexible ,subscription_period=subscription_period,
+            business_connection_id=business_connection_id)
 
 
     # noinspection PyShadowingBuiltins
@@ -5441,7 +5562,8 @@ class TeleBot:
             business_connection_id: Optional[str]=None,
             question_parse_mode: Optional[str] = None,
             question_entities: Optional[List[types.MessageEntity]] = None,
-            message_effect_id: Optional[str]=None) -> types.Message:
+            message_effect_id: Optional[str]=None,
+            allow_paid_broadcast: Optional[bool]=None) -> types.Message:
         """
         Use this method to send a native poll.
         On success, the sent Message is returned.
@@ -5523,6 +5645,10 @@ class TeleBot:
         :param message_effect_id: Unique identifier of the message effect to apply to the sent message
         :type message_effect_id: :obj:`str`
 
+        :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring broadcasting limits for a fee
+            of 0.1 Telegram Stars per message. The relevant Stars will be withdrawn from the bot's balance
+        :type allow_paid_broadcast: :obj:`bool`
+
         :return: On success, the sent Message is returned.
         :rtype: :obj:`types.Message`
         """
@@ -5578,7 +5704,7 @@ class TeleBot:
                 protect_content=protect_content, message_thread_id=message_thread_id,
                 reply_parameters=reply_parameters, business_connection_id=business_connection_id,
                 question_parse_mode=question_parse_mode, question_entities=question_entities,
-                message_effect_id=message_effect_id)
+                message_effect_id=message_effect_id, allow_paid_broadcast=allow_paid_broadcast)
             )
 
 
@@ -5707,6 +5833,26 @@ class TeleBot:
         :rtype: :obj:`bool`
         """
         return apihelper.refund_star_payment(self.token, user_id, telegram_payment_charge_id)
+
+    def edit_user_star_subscription(self, user_id: int, telegram_payment_charge_id: str, is_canceled: bool) -> bool:
+        """
+        Allows the bot to cancel or re-enable extension of a subscription paid in Telegram Stars. Returns True on success.
+
+        Telegram documentation: https://core.telegram.org/bots/api#edituserstarsubscription
+
+        :param user_id: Identifier of the user whose subscription will be edited
+        :type user_id: :obj:`int`
+
+        :param telegram_payment_charge_id: Telegram payment identifier for the subscription
+        :type telegram_payment_charge_id: :obj:`str`
+
+        :param is_canceled: Pass True to cancel extension of the user subscription; the subscription must be active up to the end of the current subscription period. Pass False to allow the user to re-enable a subscription that was previously canceled by the bot.
+        :type is_canceled: :obj:`bool`
+
+        :return: On success, True is returned.
+        :rtype: :obj:`bool`
+        """
+        return apihelper.edit_user_star_subscription(self.token, user_id, telegram_payment_charge_id, is_canceled)
 
     def edit_message_caption(
             self, caption: str, chat_id: Optional[Union[int, str]]=None, 
@@ -6104,6 +6250,44 @@ class TeleBot:
         """
         return apihelper.delete_sticker_set(self.token, name)
 
+    def send_gift(self, user_id: int, gift_id: str, text: Optional[str]=None, text_parse_mode: Optional[str]=None, text_entities: Optional[List[types.MessageEntity]]=None) -> bool:
+        """
+        Sends a gift to the given user. The gift can't be converted to Telegram Stars by the user. Returns True on success.
+
+        Telegram documentation: https://core.telegram.org/bots/api#sendgift
+
+        :param user_id: Unique identifier of the target user that will receive the gift
+        :type user_id: :obj:`int`
+
+        :param gift_id: Identifier of the gift
+        :type gift_id: :obj:`str`
+
+        :param text: Text that will be shown along with the gift; 0-255 characters
+        :type text: :obj:`str`
+
+        :param text_parse_mode: Mode for parsing entities in the text. See formatting options for more details. Entities other than “bold”, “italic”, “underline”, “strikethrough”, “spoiler”, and “custom_emoji” are ignored.
+        :type text_parse_mode: :obj:`str`
+
+        :param text_entities: A JSON-serialized list of special entities that appear in the gift text. It can be specified instead of text_parse_mode. Entities other than “bold”, “italic”, “underline”, “strikethrough”, “spoiler”, and “custom_emoji” are ignored.
+        :type text_entities: :obj:`list` of :obj:`types.MessageEntity`
+
+        :return: Returns True on success.
+        :rtype: :obj:`bool`
+        """
+        return apihelper.send_gift(self.token, user_id, gift_id, text=text, text_parse_mode=text_parse_mode, text_entities=text_entities)
+    
+    def get_available_gifts(self) -> types.Gifts:
+        """
+        Returns the list of gifts that can be sent by the bot to users. Requires no parameters. Returns a Gifts object.
+
+        Telegram documentation: https://core.telegram.org/bots/api#getavailablegifts
+
+        :return: On success, a Gifts object is returned.
+        :rtype: :class:`telebot.types.Gifts`
+        """
+        return types.Gifts.de_json(
+            apihelper.get_available_gifts(self.token)
+        )
 
     def replace_sticker_in_set(self, user_id: int, name: str, old_sticker: str, sticker: types.InputSticker) -> bool:
         """
@@ -6623,6 +6807,42 @@ class TeleBot:
         """
         return apihelper.answer_web_app_query(self.token, web_app_query_id, result)
 
+    def save_prepared_inline_message(
+            self, user_id: int, result: types.InlineQueryResultBase, allow_user_chats: Optional[bool]=None,
+            allow_bot_chats: Optional[bool]=None, allow_group_chats: Optional[bool]=None,
+            allow_channel_chats: Optional[bool]=None) -> types.PreparedInlineMessage:
+        """
+        Use this method to store a message that can be sent by a user of a Mini App.
+        Returns a PreparedInlineMessage object.
+
+        Telegram Documentation: https://core.telegram.org/bots/api#savepreparedinlinemessage
+
+        :param user_id: Unique identifier of the target user that can use the prepared message
+        :type user_id: :obj:`int`
+
+        :param result: A JSON-serialized object describing the message to be sent
+        :type result: :class:`telebot.types.InlineQueryResultBase`
+
+        :param allow_user_chats: Pass True if the message can be sent to private chats with users
+        :type allow_user_chats: :obj:`bool`
+
+        :param allow_bot_chats: Pass True if the message can be sent to private chats with bots
+        :type allow_bot_chats: :obj:`bool`
+
+        :param allow_group_chats: Pass True if the message can be sent to group and supergroup chats
+        :type allow_group_chats: :obj:`bool`
+
+        :param allow_channel_chats: Pass True if the message can be sent to channel chats
+        :type allow_channel_chats: :obj:`bool`
+
+        :return: On success, a PreparedInlineMessage object is returned.
+        :rtype: :class:`telebot.types.PreparedInlineMessage`
+        """
+        return types.PreparedInlineMessage.de_json(
+            apihelper.save_prepared_inline_message(
+                self.token, user_id, result, allow_user_chats=allow_user_chats, allow_bot_chats=allow_bot_chats,
+                allow_group_chats=allow_group_chats, allow_channel_chats=allow_channel_chats)
+        )
 
     def register_for_reply(self, message: types.Message, callback: Callable, *args, **kwargs) -> None:
         """
