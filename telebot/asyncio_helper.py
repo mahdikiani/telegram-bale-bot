@@ -39,11 +39,10 @@ class SessionManager:
         self.ssl_context = ssl.create_default_context(cafile=certifi.where())
 
     async def create_session(self):
-        self.session = aiohttp.ClientSession(
-            connector=aiohttp.TCPConnector(
-                limit=REQUEST_LIMIT, ssl_context=self.ssl_context
-            )
-        )
+        self.session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(
+            limit=REQUEST_LIMIT,
+            ssl=self.ssl_context
+        ))
         return self.session
 
     async def get_session(self):
@@ -98,7 +97,7 @@ async def _process_request(token, url, method="get", params=None, files=None, **
     while not got_result and current_try < MAX_RETRIES - 1:
         current_try += 1
         try:
-            if len(token) == 51:
+            if len(token) in [50, 51]:
                 if url == "getFile":
                     return {
                         "file_id": file_id,
@@ -214,7 +213,7 @@ async def get_file(token, file_id):
 
 async def get_file_url(token, file_id):
     if FILE_URL is None:
-        if len(token) == 51:
+        if len(token) in [50, 51]:
             return f"https://tapi.bale.ai/file/bot{token}/{file_id}"
         return "https://api.telegram.org/file/bot{0}/{1}".format(
             token, (await get_file(token, file_id))["file_path"]
@@ -226,7 +225,7 @@ async def get_file_url(token, file_id):
 
 async def download_file(token, file_path):
     if FILE_URL is None:
-        if len(token) == 51:
+        if len(token) in [50, 51]:
             url = f"https://tapi.bale.ai/file/bot{token}/{file_path}"
         else:
             url = "https://api.telegram.org/file/bot{0}/{1}".format(token, file_path)
@@ -504,21 +503,11 @@ async def get_chat_member(token, chat_id, user_id):
 
 
 async def forward_message(
-    token,
-    chat_id,
-    from_chat_id,
-    message_id,
-    disable_notification=None,
-    timeout=None,
-    protect_content=None,
-    message_thread_id=None,
-):
-    method_url = r"forwardMessage"
-    payload = {
-        "chat_id": chat_id,
-        "from_chat_id": from_chat_id,
-        "message_id": message_id,
-    }
+        token, chat_id, from_chat_id, message_id,
+        disable_notification=None, timeout=None, protect_content=None,
+        message_thread_id=None, video_start_timestamp=None):
+    method_url = r'forwardMessage'
+    payload = {'chat_id': chat_id, 'from_chat_id': from_chat_id, 'message_id': message_id}
     if disable_notification is not None:
         payload["disable_notification"] = disable_notification
     if timeout:
@@ -526,14 +515,16 @@ async def forward_message(
     if protect_content is not None:
         payload["protect_content"] = protect_content
     if message_thread_id:
-        payload["message_thread_id"] = message_thread_id
+        payload['message_thread_id'] = message_thread_id
+    if video_start_timestamp:
+        payload['video_start_timestamp'] = video_start_timestamp
     return await _process_request(token, method_url, params=payload)
 
 
 async def copy_message(token, chat_id, from_chat_id, message_id, caption=None, parse_mode=None, caption_entities=None,
                  disable_notification=None,  
                  reply_markup=None, timeout=None, protect_content=None, message_thread_id=None, reply_parameters=None, show_caption_above_media=None,
-                 allow_paid_broadcast=None):
+                 allow_paid_broadcast=None, video_start_timestamp=None):
     method_url = r'copyMessage'
     payload = {'chat_id': chat_id, 'from_chat_id': from_chat_id, 'message_id': message_id}
     if caption is not None:
@@ -560,6 +551,8 @@ async def copy_message(token, chat_id, from_chat_id, message_id, caption=None, p
         payload['show_caption_above_media'] = show_caption_above_media
     if allow_paid_broadcast is not None:
         payload['allow_paid_broadcast'] = allow_paid_broadcast
+    if video_start_timestamp:
+        payload['video_start_timestamp'] = video_start_timestamp
     return await _process_request(token, method_url, params=payload)
 
 
@@ -890,7 +883,7 @@ async def send_video(token, chat_id, data, duration=None, caption=None,  reply_m
                      parse_mode=None, supports_streaming=None, disable_notification=None, timeout=None,
                      thumbnail=None, width=None, height=None, caption_entities=None, 
                      protect_content=None, message_thread_id=None, has_spoiler=None,reply_parameters=None, business_connection_id=None,
-                     message_effect_id=None, show_caption_above_media=None, allow_paid_broadcast=None):
+                     message_effect_id=None, show_caption_above_media=None, allow_paid_broadcast=None, cover=None, start_timestamp=None):
     method_url = r'sendVideo'
     payload = {'chat_id': chat_id}
     files = None
@@ -944,6 +937,16 @@ async def send_video(token, chat_id, data, duration=None, caption=None,  reply_m
         payload['show_caption_above_media'] = show_caption_above_media
     if allow_paid_broadcast is not None:
         payload['allow_paid_broadcast'] = allow_paid_broadcast
+    if cover:
+        if not util.is_string(cover):
+            if files:
+                files['cover'] = cover
+            else:
+                files = {'cover': cover}
+        else:
+            payload['cover'] = cover
+    if start_timestamp:
+        payload['start_timestamp'] = start_timestamp
     return await _process_request(token, method_url, params=payload, files=files, method='post')
 
 
@@ -2101,7 +2104,8 @@ async def delete_sticker_set(token, name):
     return await _process_request(token, method_url, params=payload, method="post")
 
 
-async def send_gift(token, user_id, gift_id, text=None, text_parse_mode=None, text_entities=None):
+async def send_gift(token, gift_id, text=None, text_parse_mode=None, text_entities=None, pay_for_upgrade=None,
+                    user_id=None, chat_id=None):
     method_url = 'sendGift'
     payload = {'user_id': user_id, 'gift_id': gift_id}
     if text:
@@ -2110,6 +2114,36 @@ async def send_gift(token, user_id, gift_id, text=None, text_parse_mode=None, te
         payload['text_parse_mode'] = text_parse_mode
     if text_entities:
         payload['text_entities'] = json.dumps(types.MessageEntity.to_list_of_dicts(text_entities))
+    if pay_for_upgrade is not None:
+        payload['pay_for_upgrade'] = pay_for_upgrade
+    if chat_id:
+        payload['chat_id'] = chat_id
+    if user_id:
+        payload['user_id'] = user_id
+    return await _process_request(token, method_url, params=payload, method='post')
+    
+async def verify_user(token, user_id, custom_description=None):
+    method_url = 'verifyUser'
+    payload = {'user_id': user_id}
+    if custom_description:
+        payload['custom_description'] = custom_description
+    return await _process_request(token, method_url, params=payload, method='post')
+
+async def verify_chat(token, chat_id, custom_description=None):
+    method_url = 'verifyChat'
+    payload = {'chat_id': chat_id}
+    if custom_description:
+        payload['custom_description'] = custom_description
+    return await _process_request(token, method_url, params=payload, method='post')
+
+async def remove_user_verification(token, user_id):
+    method_url = 'removeUserVerification'
+    payload = {'user_id': user_id}
+    return await _process_request(token, method_url, params=payload, method='post')
+
+async def remove_chat_verification(token, chat_id):
+    method_url = 'removeChatVerification'
+    payload = {'chat_id': chat_id}
     return await _process_request(token, method_url, params=payload, method='post')
 
 async def get_available_gifts(token):
@@ -2468,7 +2502,7 @@ async def convert_input_media_array(array):
                 if isinstance(thumbnail, types.InputFile):
                     thumbnail_key = 'thumbnail_' + key  
                     files[thumbnail_key] = thumbnail    
-                    media_dict['thumbnail'] = 'attach://' + thumbnail_key                    
+                    media_dict['thumbnail'] = 'attach://' + thumbnail_key     
             media.append(media_dict)
     return json.dumps(media), files
 

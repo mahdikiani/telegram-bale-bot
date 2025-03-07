@@ -795,6 +795,13 @@ class ChatFullInfo(JsonDeserializable):
     :param permissions: Optional. Default chat member permissions, for groups and supergroups. Returned only in getChat.
     :type permissions: :class:`telebot.types.ChatPermissions`
 
+    :param can_send_gift: Optional. True, if gifts can be sent to the chat
+    :type can_send_gift: :obj:`bool`
+
+    :param can_send_paid_media: Optional. True, if paid media messages can be sent or forwarded to the channel chat.
+        The field is available only for channel chats.
+    :type can_send_paid_media: :obj:`bool`
+
     :param slow_mode_delay: Optional. For supergroups, the minimum allowed delay between consecutive messages sent by each unpriviledged user; in seconds. Returned only in getChat.
     :type slow_mode_delay: :obj:`int`
 
@@ -835,10 +842,6 @@ class ChatFullInfo(JsonDeserializable):
     :param location: Optional. For supergroups, the location to which the supergroup is connected. Returned only in getChat.
     :type location: :class:`telebot.types.ChatLocation`
 
-    :param can_send_paid_media: Optional. True, if paid media messages can be sent or forwarded to the channel chat.
-        The field is available only for channel chats.
-    :type can_send_paid_media: :obj:`bool`
-
     :return: Instance of the class
     :rtype: :class:`telebot.types.ChatFullInfo`
     """
@@ -876,54 +879,20 @@ class ChatFullInfo(JsonDeserializable):
             obj["birthdate"] = Birthdate.de_json(obj["birthdate"])
         return cls(**obj)
 
-    def __init__(
-        self,
-        id,
-        type,
-        title=None,
-        username=None,
-        first_name=None,
-        last_name=None,
-        photo=None,
-        bio=None,
-        has_private_forwards=None,
-        description=None,
-        invite_link=None,
-        pinned_message=None,
-        permissions=None,
-        slow_mode_delay=None,
-        message_auto_delete_time=None,
-        has_protected_content=None,
-        sticker_set_name=None,
-        can_set_sticker_set=None,
-        linked_chat_id=None,
-        location=None,
-        join_to_send_messages=None,
-        join_by_request=None,
-        has_restricted_voice_and_video_messages=None,
-        is_forum=None,
-        max_reaction_count=None,
-        active_usernames=None,
-        emoji_status_custom_emoji_id=None,
-        has_hidden_members=None,
-        has_aggressive_anti_spam_enabled=None,
-        emoji_status_expiration_date=None,
-        available_reactions=None,
-        accent_color_id=None,
-        background_custom_emoji_id=None,
-        profile_accent_color_id=None,
-        profile_background_custom_emoji_id=None,
-        has_visible_history=None,
-        unrestrict_boost_count=None,
-        custom_emoji_sticker_set_name=None,
-        business_intro=None,
-        business_location=None,
-        business_opening_hours=None,
-        personal_chat=None,
-        birthdate=None,
-        can_send_paid_media=None,
-        **kwargs,
-    ):
+    def __init__(self, id, type, title=None, username=None, first_name=None,
+                 last_name=None, photo=None, bio=None, has_private_forwards=None,
+                 description=None, invite_link=None, pinned_message=None, 
+                 permissions=None, slow_mode_delay=None,
+                 message_auto_delete_time=None, has_protected_content=None, sticker_set_name=None,
+                 can_set_sticker_set=None, linked_chat_id=None, location=None, 
+                 join_to_send_messages=None, join_by_request=None, has_restricted_voice_and_video_messages=None, 
+                 is_forum=None, max_reaction_count=None, active_usernames=None, emoji_status_custom_emoji_id=None,
+                 has_hidden_members=None, has_aggressive_anti_spam_enabled=None, emoji_status_expiration_date=None, 
+                 available_reactions=None, accent_color_id=None, background_custom_emoji_id=None, profile_accent_color_id=None,
+                 profile_background_custom_emoji_id=None, has_visible_history=None, 
+                 unrestrict_boost_count=None, custom_emoji_sticker_set_name=None, business_intro=None, business_location=None,
+                    business_opening_hours=None, personal_chat=None, birthdate=None, 
+                    can_send_paid_media=None, can_send_gift=None, **kwargs):
         self.id: int = id
         self.type: str = type
         self.title: Optional[str] = title
@@ -978,6 +947,7 @@ class ChatFullInfo(JsonDeserializable):
         self.personal_chat: Optional[Chat] = personal_chat
         self.birthdate: Optional[Birthdate] = birthdate
         self.can_send_paid_media: Optional[bool] = can_send_paid_media
+        self.can_send_gift: Optional[bool] = can_send_gift
 
 
 class Chat(ChatFullInfo):
@@ -2254,6 +2224,12 @@ class Video(JsonDeserializable):
     :param thumbnail: Optional. Video thumbnail
     :type thumbnail: :class:`telebot.types.PhotoSize`
 
+    :param cover: Optional. Available sizes of the cover of the video in the message
+    :type cover: List[:class:`telebot.types.PhotoSize`]
+
+    :param start_timestamp: Optional. Timestamp in seconds from which the video will play in the message
+    :type start_timestamp: :obj:`int`
+
     :param file_name: Optional. Original filename as defined by sender
     :type file_name: :obj:`str`
 
@@ -2274,23 +2250,14 @@ class Video(JsonDeserializable):
         if json_string is None:
             return None
         obj = cls.check_json(json_string)
-        if "thumbnail" in obj and "file_id" in obj["thumbnail"]:
-            obj["thumbnail"] = PhotoSize.de_json(obj["thumbnail"])
+        if 'thumbnail' in obj and 'file_id' in obj['thumbnail']:
+            obj['thumbnail'] = PhotoSize.de_json(obj['thumbnail'])
+        if 'cover' in obj:
+            obj['cover'] = [PhotoSize.de_json(c) for c in obj['cover']]
         return cls(**obj)
 
-    def __init__(
-        self,
-        file_id,
-        file_unique_id,
-        width,
-        height,
-        duration,
-        thumbnail=None,
-        file_name=None,
-        mime_type=None,
-        file_size=None,
-        **kwargs,
-    ):
+    def __init__(self, file_id, file_unique_id, width, height, duration, thumbnail=None, file_name=None, mime_type=None, file_size=None,
+                    cover=None, start_timestamp=None, **kwargs):
         self.file_id: str = file_id
         self.file_unique_id: str = file_unique_id
         self.width: int = width
@@ -2300,6 +2267,8 @@ class Video(JsonDeserializable):
         self.file_name: Optional[str] = file_name
         self.mime_type: Optional[str] = mime_type
         self.file_size: Optional[int] = file_size
+        self.cover: Optional[List[PhotoSize]] = cover
+        self.start_timestamp: Optional[int] = start_timestamp
 
     @property
     def thumb(self) -> Optional[PhotoSize]:
@@ -5037,6 +5006,11 @@ class InlineQueryResultArticle(InlineQueryResultBase):
         self.thumbnail_width: Optional[int] = thumbnail_width
         self.thumbnail_height: Optional[int] = thumbnail_height
 
+        if hide_url:
+            log_deprecation_warning('The parameter "hide_url" is deprecated. Pass an empty string as url instead.')
+            self.url = ''
+
+
     @property
     def thumb_url(self) -> str:
         log_deprecation_warning('The parameter "thumb_url" is deprecated, use "thumbnail_url" instead')
@@ -7748,6 +7722,14 @@ class InputMediaVideo(InputMedia):
         multipart/form-data under <file_attach_name>. More information on Sending Files »
     :type thumbnail: InputFile or :obj:`str`
 
+    :param cover: Cover for the video in the message. Pass a file_id to send a file that exists on the Telegram servers (recommended),
+        pass an HTTP URL for Telegram to get a file from the Internet, or pass “attach://<file_attach_name>” to upload a new one using multipart/form-data under
+        <file_attach_name> name. More information on Sending Files »
+    :type cover: :obj:`str` or :class:`telebot.types.InputFile`
+
+    :param start_timestamp: Start timestamp for the video in the message
+    :type start_timestamp: :obj:`int`
+
     :param caption: Optional. Caption of the video to be sent, 0-1024 characters after entities parsing
     :type caption: :obj:`str`
 
@@ -7780,21 +7762,13 @@ class InputMediaVideo(InputMedia):
     :return: Instance of the class
     :rtype: :class:`telebot.types.InputMediaVideo`
     """
-
-    def __init__(
-        self,
-        media: Union[str, InputFile],
-        thumbnail: Optional[Union[str, InputFile]] = None,
-        caption: Optional[str] = None,
-        parse_mode: Optional[str] = None,
-        caption_entities: Optional[List[MessageEntity]] = None,
-        width: Optional[int] = None,
-        height: Optional[int] = None,
-        duration: Optional[int] = None,
-        supports_streaming: Optional[bool] = None,
-        has_spoiler: Optional[bool] = None,
-        show_caption_above_media: Optional[bool] = None,
-    ):
+    def __init__(self, media: Union[str, InputFile], thumbnail: Optional[Union[str, InputFile]] = None,
+                    caption: Optional[str] = None, parse_mode: Optional[str] = None,
+                    caption_entities: Optional[List[MessageEntity]] = None, width: Optional[int] = None,
+                    height: Optional[int] = None, duration: Optional[int] = None,
+                    supports_streaming: Optional[bool] = None, has_spoiler: Optional[bool] = None,
+                    show_caption_above_media: Optional[bool] = None, cover: Optional[Union[str, InputFile]] = None,
+                    start_timestamp: Optional[int] = None):
         super(InputMediaVideo, self).__init__(
             type="video",
             media=media,
@@ -7809,6 +7783,8 @@ class InputMediaVideo(InputMedia):
         self.supports_streaming: Optional[bool] = supports_streaming
         self.has_spoiler: Optional[bool] = has_spoiler
         self.show_caption_above_media: Optional[bool] = show_caption_above_media
+        self.cover: Optional[str] = cover
+        self.start_timestamp: Optional[int] = start_timestamp
 
     @property
     def thumb(self) -> Optional[Union[str, Any]]:
@@ -7830,7 +7806,11 @@ class InputMediaVideo(InputMedia):
         if self.has_spoiler is not None:
             ret["has_spoiler"] = self.has_spoiler
         if self.show_caption_above_media is not None:
-            ret["show_caption_above_media"] = self.show_caption_above_media
+            ret['show_caption_above_media'] = self.show_caption_above_media
+        if self.cover:
+            ret['cover'] = self.cover
+        if self.start_timestamp:
+            ret['start_timestamp'] = self.start_timestamp
         return ret
 
 
@@ -11816,6 +11796,8 @@ class TransactionPartner(JsonDeserializable):
             return TransactionPartnerAffiliateProgram.de_json(obj)
         elif obj["type"] == "other":
             return TransactionPartnerOther.de_json(obj)
+        elif obj["type"] == "chat":
+            return TransactionPartnerChat.de_json(obj)
 
 
 # noinspection PyShadowingBuiltins
@@ -12293,6 +12275,14 @@ class InputPaidMediaVideo(InputPaidMedia):
         More information on Sending Files »
     :type thumbnail: :class:`InputFile`
 
+    :param cover: Cover for the video in the message. Pass a file_id to send a file that exists on the Telegram servers (recommended),
+        pass an HTTP URL for Telegram to get a file from the Internet, or pass “attach://<file_attach_name>” to upload a new one using multipart/form-data under
+        <file_attach_name> name. More information on Sending Files »
+    :type cover: :obj:`str` or :class:`telebot.types.InputFile`
+
+    :param start_timestamp: Start timestamp for the video in the message
+    :type start_timestamp: :obj:`int`
+
     :param width: Optional. Video width
     :type width: :obj:`int`
 
@@ -12309,23 +12299,18 @@ class InputPaidMediaVideo(InputPaidMedia):
     :rtype: :class:`InputPaidMediaVideo`
 
     """
-
-    def __init__(
-        self,
-        media: Union[str, InputFile],
-        thumbnail: Optional[InputFile] = None,
-        width: Optional[int] = None,
-        height: Optional[int] = None,
-        duration: Optional[int] = None,
-        supports_streaming: Optional[bool] = None,
-        **kwargs,
-    ):
-        super().__init__(type="video", media=media)
-        self.thumbnail: Optional[Union[str, InputFile]] = thumbnail
+    def __init__(self, media: Union[str, InputFile], thumbnail: Optional[InputFile] = None, width: Optional[int] = None,
+                 height: Optional[int] = None, duration: Optional[int] = None, supports_streaming: Optional[bool] = None,
+                 cover: Optional[Union[str,InputFile]] = None, start_timestamp: Optional[int] = None, **kwargs):
+        super().__init__(type='video', media=media)
+        self.thumbnail: Optional[Union[str,InputFile]] = thumbnail
         self.width: Optional[int] = width
         self.height: Optional[int] = height
         self.duration: Optional[int] = duration
         self.supports_streaming: Optional[bool] = supports_streaming
+        self.cover: Optional[Union[str,InputFile]] = cover
+        self.start_timestamp: Optional[int] = start_timestamp
+
 
     def to_dict(self):
         data = super().to_dict()
@@ -12338,7 +12323,11 @@ class InputPaidMediaVideo(InputPaidMedia):
         if self.duration:
             data["duration"] = self.duration
         if self.supports_streaming is not None:
-            data["supports_streaming"] = self.supports_streaming
+            data['supports_streaming'] = self.supports_streaming
+        if self.cover:
+            data['cover'] = self.cover
+        if self.start_timestamp:
+            data['start_timestamp'] = self.start_timestamp
         return data
 
 
@@ -12491,6 +12480,9 @@ class Gift(JsonDeserializable):
     :param star_count: The number of Telegram Stars that must be paid to send the sticker
     :type star_count: :obj:`int`
 
+    :param upgrade_star_count: Optional. The number of Telegram Stars that must be paid to upgrade the gift to a unique one
+    :type upgrade_star_count: :obj:`int`
+
     :param total_count: Optional. The total number of the gifts of this type that can be sent; for limited gifts only
     :type total_count: :obj:`int`
 
@@ -12501,12 +12493,13 @@ class Gift(JsonDeserializable):
     :rtype: :class:`Gift`
     """
 
-    def __init__(self, id, sticker, star_count, total_count=None, remaining_count=None, **kwargs):
+    def __init__(self, id, sticker, star_count, total_count=None, remaining_count=None, upgrade_star_count=None, **kwargs):
         self.id: str = id
         self.sticker: Sticker = sticker
         self.star_count: int = star_count
         self.total_count: Optional[int] = total_count
         self.remaining_count: Optional[int] = remaining_count
+        self.upgrade_star_count: Optional[int] = upgrade_star_count
 
     @classmethod
     def de_json(cls, json_string):
@@ -12613,5 +12606,39 @@ class AffiliateInfo(JsonDeserializable):
             obj['affiliate_user'] = User.de_json(obj['affiliate_user'])
         if 'affiliate_chat' in obj:
             obj['affiliate_chat'] = Chat.de_json(obj['affiliate_chat'])
+        return cls(**obj)
+    
+
+class TransactionPartnerChat(TransactionPartner):
+    """
+    Describes a transaction with a chat.
+
+    Telegram documentation: https://core.telegram.org/bots/api#transactionpartnerchat
+
+    :param type: Type of the transaction partner, always “chat”
+    :type type: :obj:`str`
+
+    :param chat: Information about the chat
+    :type chat: :class:`Chat`
+
+    :param gift: Optional. The gift sent to the chat by the bot
+    :type gift: :class:`Gift`
+
+    :return: Instance of the class
+    :rtype: :class:`TransactionPartnerChat`
+    """
+
+    def __init__(self, type, chat, gift=None, **kwargs):
+        self.type: str = type
+        self.chat: Chat = chat
+        self.gift: Optional[Gift] = gift
+
+    @classmethod
+    def de_json(cls, json_string):
+        if json_string is None: return None
+        obj = cls.check_json(json_string)
+        obj['chat'] = Chat.de_json(obj['chat'])
+        if 'gift' in obj:
+            obj['gift'] = Gift.de_json(obj['gift'])
         return cls(**obj)
     
