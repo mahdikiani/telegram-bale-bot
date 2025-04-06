@@ -90,7 +90,7 @@ async def _process_request(token, url, method="get", params=None, files=None, **
     timeout = aiohttp.ClientTimeout(total=request_timeout)
     got_result = False
     current_try = 0
-    if len(token) == 51:
+    if len(token) in [50, 51]:
         session = await session_manager_bale.get_session()
     else:
         session = await session_manager.get_session()
@@ -229,7 +229,7 @@ async def download_file(token, file_path):
             url = f"https://tapi.bale.ai/file/bot{token}/{file_path}"
         else:
             url = "https://api.telegram.org/file/bot{0}/{1}".format(token, file_path)
-    if len(token) == 51:
+    if len(token) in [50, 51]:
         session = await session_manager_bale.get_session()
     else:
         session = await session_manager.get_session()
