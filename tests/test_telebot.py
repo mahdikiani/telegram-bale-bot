@@ -54,12 +54,12 @@ class TestTeleBot:
         def listener(messages):
             assert len(messages) == 100
 
-        tb = telebot.TeleBot("")
+        tb = telebot.TeleBot(TOKEN)
         tb.set_update_listener(listener)
 
     def test_message_handler(self):
-        tb = telebot.TeleBot("")
-        msg = self.create_text_message("/help")
+        tb = telebot.TeleBot(TOKEN)
+        msg = self.create_text_message('/help')
 
         @tb.message_handler(commands=["help", "start"])
         def command_handler(message):
@@ -70,8 +70,8 @@ class TestTeleBot:
         assert msg.text == "got"
 
     def test_message_handler_reg(self):
-        bot = telebot.TeleBot("")
-        msg = self.create_text_message(r"https://web.telegram.org/")
+        bot = telebot.TeleBot(TOKEN)
+        msg = self.create_text_message(r'https://web.telegram.org/')
 
         # noinspection PyUnusedLocal
         @bot.message_handler(
@@ -85,8 +85,8 @@ class TestTeleBot:
         assert msg.text == "got"
 
     def test_message_handler_lambda(self):
-        bot = telebot.TeleBot("")
-        msg = self.create_text_message(r"lambda_text")
+        bot = telebot.TeleBot(TOKEN)
+        msg = self.create_text_message(r'lambda_text')
 
         # noinspection PyUnusedLocal
         @bot.message_handler(func=lambda message: r"lambda" in message.text)
@@ -98,8 +98,8 @@ class TestTeleBot:
         assert msg.text == "got"
 
     def test_message_handler_lambda_fail(self):
-        bot = telebot.TeleBot("")
-        msg = self.create_text_message(r"text")
+        bot = telebot.TeleBot(TOKEN)
+        msg = self.create_text_message(r'text')
 
         # noinspection PyUnusedLocal
         @bot.message_handler(func=lambda message: r"lambda" in message.text)
@@ -111,8 +111,8 @@ class TestTeleBot:
         assert not msg.text == "got"
 
     def test_message_handler_reg_fail(self):
-        bot = telebot.TeleBot("")
-        msg = self.create_text_message(r"web.telegram.org/")
+        bot = telebot.TeleBot(TOKEN)
+        msg = self.create_text_message(r'web.telegram.org/')
 
         # noinspection PyUnusedLocal
         @bot.message_handler(
@@ -163,6 +163,7 @@ class TestTeleBot:
         ret_msg = tb.send_document(CHAT_ID, file_data)
         assert ret_msg.message_id
 
+        file_data.seek(0)
         ret_msg = tb.send_document(CHAT_ID, file_data, visible_file_name="test.jpg")
         assert ret_msg.message_id
 
@@ -587,31 +588,34 @@ let number = loop {
 
     @staticmethod
     def create_message_update(text):
-        params = {"text": text}
-        chat = types.User(11, False, "test")
-        message = types.Message(1, None, None, chat, "text", params, "")
-        edited_message = None
-        channel_post = None
-        edited_channel_post = None
-        inline_query = None
-        chosen_inline_result = None
-        callback_query = None
-        shipping_query = None
-        pre_checkout_query = None
-        poll = None
-        poll_answer = None
-        my_chat_member = None
-        chat_member = None
-        chat_join_request = None
-        message_reaction = None
-        message_reaction_count = None
-        chat_boost = None
-        chat_boost_removed = None
-        purchased_paid_media = None
-        return types.Update(-1001234038283, message, edited_message, channel_post, edited_channel_post, inline_query,
-                            chosen_inline_result, callback_query, shipping_query, pre_checkout_query, poll, poll_answer,
-                            my_chat_member, chat_member, chat_join_request, message_reaction, message_reaction_count, chat_boost, chat_boost_removed,
-                            purchased_paid_media)
+        params = {'text': text}
+        chat = types.User(11, False, 'test')
+        message = types.Message(1, None, None, chat, 'text', params, "")
+        return types.Update(
+            update_id=-1001234038283,
+            message=message,
+            edited_message=None,
+            channel_post=None,
+            edited_channel_post=None,
+            inline_query=None,
+            chosen_inline_result=None,
+            callback_query=None,
+            shipping_query=None,
+            pre_checkout_query=None,
+            poll=None,
+            poll_answer=None,
+            my_chat_member=None,
+            chat_member=None,
+            chat_join_request=None,
+            message_reaction=None,
+            message_reaction_count=None,
+            chat_boost=None,
+            removed_chat_boost=None,
+            purchased_paid_media=None,
+            business_message=None,
+            business_connection=None,
+            edited_business_message=None,
+            deleted_business_messages=None, )
 
     def test_is_string_unicode(self):
         s1 = "string"
