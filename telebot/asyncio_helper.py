@@ -57,6 +57,8 @@ class SessionManager:
 
 
 session_manager = SessionManager()
+session_manager_bale = SessionManager()
+
 
 async def _process_request(token, url, method='get', params=None, files=None, **kwargs):
     # Let's resolve all timeout parameters.
@@ -79,15 +81,30 @@ async def _process_request(token, url, method='get', params=None, files=None, **
     
 
     # Preparing data by adding all parameters and files to FormData
+    file_id = (params or {}).get("file_id", None)
     params = _prepare_data(params, files)
 
     timeout = aiohttp.ClientTimeout(total=request_timeout)
     got_result = False
     current_try=0
-    session = await session_manager.get_session()
+    if len(token) in [50, 51]:
+        session = await session_manager_bale.get_session()
+    else:
+        session = await session_manager.get_session()
     while not got_result and current_try<MAX_RETRIES-1:
         current_try +=1
         try:
+            if len(token) in [50, 51]:
+                if url == "getFile":
+                    return {
+                        "file_id": file_id,
+                        "file_path": file_id,
+                        "file_unique_id": file_id,
+                    }
+                API_URL = "https://tapi.bale.ai/bot{0}/{1}"
+                method = "post"
+            else:
+                API_URL = "https://api.telegram.org/bot{0}/{1}"
             async with session.request(method=method, url=API_URL.format(token, url), data=params, timeout=timeout, proxy=proxy) as resp:
                 got_result = True
                 logger.debug("Request: method={0} url={1} params={2} files={3} request_timeout={4} current_try={5}".format(method, url, params, files, request_timeout, current_try).replace(token, token.split(':')[0] + ":{TOKEN}"))
@@ -173,6 +190,9 @@ async def get_file(token, file_id):
 
 async def get_file_url(token, file_id):
     if FILE_URL is None:
+        if len(token) in [50, 51]:
+            return f"https://tapi.bale.ai/file/bot{token}/{file_id}"
+
         return "https://api.telegram.org/file/bot{0}/{1}".format(token, (await get_file(token, file_id))['file_path'])
     else:
         # noinspection PyUnresolvedReferences
@@ -181,11 +201,18 @@ async def get_file_url(token, file_id):
 
 async def download_file(token, file_path):
     if FILE_URL is None:
-        url =  "https://api.telegram.org/file/bot{0}/{1}".format(token, file_path)
+        if len(token) in [50, 51]:
+            url = f"https://tapi.bale.ai/file/bot{token}/{file_path}"
+        else:
+            url =  "https://api.telegram.org/file/bot{0}/{1}".format(token, file_path)
     else:
         # noinspection PyUnresolvedReferences
         url =  FILE_URL.format(token, file_path)
-    session = await session_manager.get_session()
+    if len(token) in [50, 51]:
+        session = await session_manager_bale.get_session()
+    else:
+        session = await session_manager.get_session()
+
     async with session.get(url, proxy=proxy) as response:
         if response.status != 200:
             raise ApiHTTPException('Download file', response)
