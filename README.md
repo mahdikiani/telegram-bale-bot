@@ -1,13 +1,14 @@
-
+<!-- 
 [![PyPi Package Version](https://img.shields.io/pypi/v/pyTelegramBotAPI.svg)](https://pypi.python.org/pypi/pyTelegramBotAPI)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/pyTelegramBotAPI.svg)](https://pypi.python.org/pypi/pyTelegramBotAPI)
 [![Documentation Status](https://readthedocs.org/projects/pytba/badge/?version=latest)](https://pytba.readthedocs.io/en/latest/?badge=latest)
 [![PyPi downloads](https://img.shields.io/pypi/dm/pyTelegramBotAPI.svg)](https://pypi.org/project/pyTelegramBotAPI/)
 [![PyPi status](https://img.shields.io/pypi/status/pytelegrambotapi.svg?style=flat-square)](https://pypi.python.org/pypi/pytelegrambotapi)
 
-# <p align="center">pyTelegramBotAPI
+# <p align="center">pyTelegramBotAPI -->
+<p align="center">Python package for Telegram and Bale Bot
 
-<p align="center">A simple, but extensible Python implementation for the <a href="https://core.telegram.org/bots/api">Telegram Bot API</a>.</p>
+<p align="center">A simple, but extensible Python implementation for the <a href="https://core.telegram.org/bots/api">Telegram Bot API</a> and <a href="https://docs.bale.ai/">Bale Bot API</a>.</p>
 <p align="center">Both synchronous and asynchronous.</p>
 
 ## <p align="center">Supported Bot API version: <a href="https://core.telegram.org/bots/api#august-15-2025"><img src="https://img.shields.io/badge/Bot%20API-9.2-blue?logo=telegram" alt="Supported Bot API version"></a>
@@ -75,19 +76,19 @@ There are two ways to install the library:
 * Installation using pip (a Python package manager):
 
 ```
-$ pip install pyTelegramBotAPI
+$ pip install telegram-bale-bot
 ```
 * Installation from source (requires git):
 
 ```
-$ pip install git+https://github.com/eternnoir/pyTelegramBotAPI.git
+$ pip install git+https://github.com/mahdikiani/telegram-bale-bot.git
 ```
 
 It is generally recommended to use the first option.
 
 *While the API is production-ready, it is still under development and it has regular updates, do not forget to update it regularly by calling*
 ```
-pip install pytelegrambotapi --upgrade
+pip install telegram-bale-bot --upgrade
 ```
 
 ## Writing your first bot
@@ -96,6 +97,8 @@ pip install pytelegrambotapi --upgrade
 
 It is presumed that you [have obtained an API token with @BotFather](https://core.telegram.org/bots#botfather). We will call this token `TOKEN`.
 Furthermore, you have basic knowledge of the Python programming language and more importantly [the Telegram Bot API](https://core.telegram.org/bots/api).
+- [Telegram botfather](https://t.me/botfather)
+- [Bale botfather](https://ble.ir/botfather)
 
 ### A simple echo bot
 
